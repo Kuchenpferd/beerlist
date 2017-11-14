@@ -46,8 +46,8 @@
   <property name="animated">
    <bool>true</bool>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QStackedWidget" name="stackedWidget">
+  <widget class="QWidget" name="MainWidget">
+   <widget class="QStackedWidget" name="MainStack">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -55,6 +55,9 @@
       <width>800</width>
       <height>480</height>
      </rect>
+    </property>
+    <property name="currentIndex">
+     <number>5</number>
     </property>
     <widget class="QWidget" name="MainScreen">
      <property name="minimumSize">
@@ -83,6 +86,44 @@
        <height>480</height>
       </size>
      </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::NoContextMenu</enum>
+     </property>
+    </widget>
+    <widget class="QWidget" name="PaidScreen"/>
+    <widget class="QWidget" name="UserNameScreen"/>
+    <widget class="QWidget" name="PasswordScreen"/>
+    <widget class="QWidget" name="LoggedInMenu">
+     <widget class="QStackedWidget" name="LoggedInStack">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>120</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <widget class="QWidget" name="LoggedInMain"/>
+      <widget class="QWidget" name="BalanceScreen"/>
+      <widget class="QWidget" name="MultiMode2"/>
+      <widget class="QWidget" name="PaidScreen2"/>
+      <widget class="QWidget" name="page"/>
+      <widget class="QWidget" name="page_4"/>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="NewUserProcess">
+     <widget class="QStackedWidget" name="NewUserStack">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>120</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <widget class="QWidget" name="page_5"/>
+      <widget class="QWidget" name="page_6"/>
+     </widget>
     </widget>
    </widget>
   </widget>
