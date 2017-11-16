@@ -2,42 +2,44 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from pyautogui import typewrite
+import pyperclip
+import pyautogui
 from PyQt4 import QtGui, QtCore
 
-# Externalizes the lengthy setting of a few standard button settings.
-# (Should probably be changed to a  superclass instead)
-def setButtonParms(anyButton):
-    anyButton.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding))
-    anyButton.setFocusPolicy(QtCore.Qt.NoFocus)
+# Emulate a keypress of non-standard utf8 keys, through pyperclip
+def emuKeyPress(Key):
+    pyperclip.copy(Key)
+    pyautogui.hotkey('ctrl','v')
 
-# A dummy default checkable button.
-# (Serves as a standard input, but might not be needed due to implementation)
-class dummyButton():
-        def isChecked():
-            return False
-        
-# Basically a cleaned version of the ./minimal_keypad.py button,
-# please refer there for further detail
-class numKeyButton(QtGui.QPushButton):
-
-    def __init__(self, priKey, parent = None):
-        super(numKeyButton, self).__init__(parent)
-        setButtonParms(self)
-        
-        self.priKey = priKey
-        self.setText(priKey)
+# Superclass of the rest of the keyButtons with some standard settings
+class keyButton(QtGui.QPushButton):
+    def __init__(self, parent = None):
+        super(keyButton, self).__init__(parent)
+        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding))
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.clicked.connect(self.onClick)
 
     def onClick(self):
-        typewrite(self.priKey)
+        None
+        
+# Basically a cleaned version of the ./minimal_keypad.py button,
+# please refer there for further detail
+class numKeyButton(keyButton):
+
+    def __init__(self, priKey, parent = None):
+        super(numKeyButton, self).__init__(parent)
+        
+        self.priKey = priKey
+        self.setText(priKey)
+
+    def onClick(self):
+        emuKeyPress(self.priKey)
 
 # Class for the modifier keys (Shift and Alt), basically just a checkable QPushButton
-class modKeyButton(QtGui.QPushButton):
+class modKeyButton(keyButton):
 
     def __init__(self, labelText, parent = None):
         super(modKeyButton, self).__init__(parent)
-        setButtonParms(self)
         
         self.setCheckable(True)
         self.setText(labelText)
@@ -45,11 +47,10 @@ class modKeyButton(QtGui.QPushButton):
 
 # Class for alph keyboard, which should be passed the setup specific shift and alt mod button.
 # Can thus emit 4 different symbols (primary low/cap and secondary low/cap)
-class boardKeyButton(QtGui.QPushButton):
+class boardKeyButton(keyButton):
 
-    def __init__(self, initKey, modShButton = dummyButton(), modAltButton = dummyButton(), parent = None):
+    def __init__(self, initKey, modShButton, modAltButton, parent = None):
         super(boardKeyButton, self).__init__(parent)
-        setButtonParms(self)
 
         # Passing the modifier buttons to the current class
         self.modShButton = modShButton
@@ -67,10 +68,6 @@ class boardKeyButton(QtGui.QPushButton):
             
         self.setText(labelText)
 
-        # Connects the click to an internal function
-        # (This should be superclassed along with other general button properties)
-        self.clicked.connect(self.onClick)
-
     # Function which is called as the button is clicked
     def onClick(self):
         
@@ -83,7 +80,7 @@ class boardKeyButton(QtGui.QPushButton):
         # Determines if the key should be put in upper case
         if self.modShButton.isChecked():
             Key = Key.upper()
-        typewrite(Key)
+        emuKeyPress(Key)
 
 
 # Dummy widget to test. Basically the same as ./minimal_keypad.py
