@@ -4,6 +4,8 @@
 import sys
 from PyQt4 import QtGui
 
+
+# For comments, please see ./minimal_keypad.py
 class Example(QtGui.QWidget):
     
     def __init__(self):
