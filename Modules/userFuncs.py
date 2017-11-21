@@ -4,9 +4,13 @@
 import os
 import csv
 from datetime import date, datetime
+from subprocess import call
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
-dataFolder = './Data/'
+workFolder = './'
+
+resourceFolder = workFolder + 'Resources/'
+dataFolder = workFolder + 'Data/'
 
 # The price of setting a mark
 price = 5
@@ -181,6 +185,25 @@ def findName(idString):
             elif idString == mail:
                 return name
     return None
+
+# A function that generates a QR code for MobilePay, and returns the path to the code
+def generateQR(user, extraAmount):
+
+    # The amount is determined from the user balance and some extra amount
+    # (the extra amount can be negative). If the amount is below zero,
+    # it is automatically set to 0.
+    amount = user.balance + extraAmount
+    if amount < 0:
+        amount = 0
+        
+    # The QR content and the command string is created and then the command is run in the shell
+    qrContent = '"mobilepay://send?amount={}&phone=98050&comment={}"'.format(amount, user.sduId)
+    command = 'qrencode -s 10 -l M -o ' + resourceFolder + 'qrcode.png ' + qrContent
+    os.system(command)
+
+    # Afterwards the path to the picture is returned
+    return resourceFolder + 'qrcode.png'
+    
 
 # The class of the reference user instance.
 # Reference users are the old users, that has not yet been created in the system
