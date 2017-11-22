@@ -1,14 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
 import csv
 from datetime import date, datetime
-from subprocess import call
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
 workFolder = './'
 
+# Additional destinations
 resourceFolder = workFolder + 'Resources/'
 dataFolder = workFolder + 'Data/'
 
@@ -49,28 +48,6 @@ class userInstance(object):
         # The stats are updated with the type 'Mark' (see class and functions further down)
         statType = 'Mark'
         updateStats(statType, units)
-
-# A small function to determine the next number of user
-# (Has been rewritten, so that it can fill out an eventual "hole" of a deleted user)
-def findNewUserNumber(users):
-
-    # An initial value is set (1 is the only reasonable value for this)
-    newUserNumber = 1
-
-    # Each time the loop runs it sets a True flag, which is turned False if any user
-    # in users already has the current user number.
-    # If the flag is still True after the check, the current user number is not taken,
-    # and otherwise, 1 is added, and the loop is restarted.
-    while True:
-        flag = True
-        for user in users:
-            if user.number == newUserNumber:
-                flag = False
-                break
-        if flag:
-            break
-        newUserNumber += 1
-    return newUserNumber
 
 # A function that loads a single user from 'path'
 def loadUser(path):
@@ -115,14 +92,40 @@ def loadUsers(users = []):
             users.append(tmpUser)
     return users
 
-# A function that writes a file for the specified 'user'. The list 'users' is
-# needed to determine the user number of a new user
-def saveUser(user, users):
+# A small function to determine the next number of user
+# (Has been rewritten, so that it can fill out an eventual "hole" of a deleted user)
+# (Has been further rewritten to check the directory instead of a list)
+def findNewUserNumber():
+
+    # An initial value is set (1 is the only reasonable value for this)
+    newUserNumber = 1
+
+    # A list of filenames in the user directory is loaded
+    userFileList = os.listdir(dataFolder + 'Users/')
+    
+    # Each time the loop runs it sets a True flag, which is turned False if any user file
+    # already has the current user number.
+    # If the flag is still True after the check, the current user number is not taken,
+    # and otherwise, 1 is added, and the loop is restarted.
+    while True:
+        flag = True
+        for fileName in userFileList:
+            userNumber = int(userFile.split('user_')[1])
+            if userNumber == newUserNumber:
+                flag = False
+                break
+        if flag:
+            break
+        newUserNumber += 1
+    return newUserNumber
+
+# A function that writes a file for the specified 'user'
+def saveUser(user):
 
     # If a user is newly created, the user number will be '0', which is corrected
     # to the appropriate number
     if user.number == 0:
-        user.number = findNewUserNumber(users)
+        user.number = findNewUserNumber()
 
     # The path is then defined from the user number
     path = dataFolder + 'Users/user_{number:04d}'.format(number = user.number)
@@ -142,7 +145,7 @@ def saveUser(user, users):
 # (Will probably not be used)
 def saveUsers(users):
     for user in users:
-        saveUser(user,users)
+        saveUser(user)
 
 # A function that takes a string and looks through all users in 'users'
 # to see if any of their cardIds match the string.
@@ -184,26 +187,7 @@ def findName(idString):
                 return name
             elif idString == mail:
                 return name
-    return None
-
-# A function that generates a QR code for MobilePay, and returns the path to the code
-def generateQR(user, extraAmount):
-
-    # The amount is determined from the user balance and some extra amount
-    # (the extra amount can be negative). If the amount is below zero,
-    # it is automatically set to 0.
-    amount = user.balance + extraAmount
-    if amount < 0:
-        amount = 0
-        
-    # The QR content and the command string is created and then the command is run in the shell
-    qrContent = '"mobilepay://send?amount={}&phone=98050&comment={}"'.format(amount, user.sduId)
-    command = 'qrencode -s 10 -l M -o ' + resourceFolder + 'qrcode.png ' + qrContent
-    os.system(command)
-
-    # Afterwards the path to the picture is returned
-    return resourceFolder + 'qrcode.png'
-    
+    return None    
 
 # The class of the reference user instance.
 # Reference users are the old users, that has not yet been created in the system
