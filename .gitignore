@@ -1,2 +1,6 @@
 # Mail credential file
-mailCredentials.txt
+/Data/mailCredentials.t
+/Data/newPwdMail.t
+/Data/debtMail.t
+/Modules/__pycache__
+/Modules/__pycache__/*
