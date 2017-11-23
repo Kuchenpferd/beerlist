@@ -96,7 +96,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         # First of we get the mail content from a file
         path = dataFolder + 'newPwdMail.t'
         with open(path, 'r') as mailFile:
-            plainText = mailFile.read()
+            plainTxt = mailFile.read()
 
         # Next we generate a random password and finds the SHA256 hash
         newPwd = genNewPwd()
@@ -110,7 +110,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         plainTxt = plainTxt.format(name = user.name, sduId = user.sduId, pwd = newPwd)
         
         # The text is then converted to HTML format
-        htmlText = plainToHtml(plainText)
+        htmlTxt = plainToHtml(plainTxt)
 
     # Sets up the mail to be a debt mail
     elif mailType == 'Debt':
@@ -122,7 +122,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         # As before the conent of the mail is loaded from a file
         path = dataFolder + 'debtMail.t'
         with open(path, 'r') as mailFile:
-            plainText = mailFile.read()
+            plainTxt = mailFile.read()
 
         # The parameters for the QR code generation are set up separately for ease of reading
         extraAmount = 0
@@ -135,7 +135,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         msgRoot['Subject'] = 'Opgørelse af Æters Ølliste'
 
         # An HTML of the plain text is generated before substitutions
-        htmlText = plainToHtml(plainText)
+        htmlTxt = plainToHtml(plainTxt)
 
         # The plain text substitution is done. Some elements are merely comments in plain txt.
         # Valid substitutions are (so far): {name}, {sduId}, {qrcode}, {balance} and {link}
@@ -145,7 +145,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
 
         # The HTML substitution is done.
         # Valid substitutions are (so far): {name}, {sduId}, {qrcode}, {balance} and {link}
-        htmlText = htmlText .format(name = user.name, sduId = user.sduId, balance = user.balance,
+        htmlTxt = htmlTxt .format(name = user.name, sduId = user.sduId, balance = user.balance,
                                     qrcode = '<img src="cid:qrcode">',
                                     link = '<a href="' + mobilePayLink + '">link</a>')
 
@@ -178,12 +178,12 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
     # using the credentials loaded earlier.
     mailServer = smtplib.SMTP_SSL(smtpServer, 465)
     mailServer.esmtp_features['auth'] = 'LOGIN'
-    mailServer.login(loginUserName, pwdMail)
+    mailServer.login(loginUsername, pwdMail)
 
     # If the mail is a password reset mail, only one try will be made at sending the mail
     if mailType == 'Pwd':
         try:
-            mailServer.sendmail(sender, [user.mail], msgRoot.as_string())
+            mailServer.sendmail(senderMail, [user.mail], msgRoot.as_string())
 
             # If the mail is suceesfully sent, the password of the user is updated and saved and True is returned
             user.pwd = newPwdHash
@@ -207,7 +207,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
                     mailServer.quit()
                     return False
                 
-                mailServer.sendmail(sender, [user.mail], msgRoot.as_string())
+                mailServer.sendmail(senderMail, [user.mail], msgRoot.as_string())
                 mailServer.quit()
 
                 # If the mail was succesfully sent True is returned

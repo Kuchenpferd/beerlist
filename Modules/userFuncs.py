@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
 import csv
 from datetime import date, datetime
 
@@ -18,7 +19,7 @@ price = 5
 class userInstance(object):
 
     # The user is set up with all of the properties
-    def __init__(self, name, mail, sdu_id, pwd, balance = 0, cardId = 0, number = 0,
+    def __init__(self, name, mail, sduId, pwd, balance = 0, cardId = 0, number = 0,
                  lastPay = 1, lastActive = 1):
 
         # As the default input for unspecified last payment date is 1,
@@ -118,7 +119,7 @@ def findNewUserNumber():
     # and otherwise, 1 is added, and the loop is restarted.
     while True:
         flag = True
-        for fileName in userFileList:
+        for userFile in userFileList:
             userNumber = int(userFile.split('user_')[1])
             if userNumber == newUserNumber:
                 flag = False

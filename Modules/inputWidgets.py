@@ -7,7 +7,8 @@ import pyautogui as pag
 from PyQt4 import QtGui, QtCore
 
 # Path to determine the resource folder (Should be changed, when imported
-resourceFolder = '../Resources/'
+workFolder = './'
+resourceFolder = workFolder + 'Resources/'
 
 # Emulate a keypress of non-standard utf8 keys, through pyperclip
 def emuKeyPress(Key):
