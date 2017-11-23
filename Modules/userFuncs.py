@@ -49,6 +49,15 @@ class userInstance(object):
         statType = 'Mark'
         updateStats(statType, units)
 
+    # Internal function to handle payments
+    def paySome(self, amount):
+
+        # The balance is subtracted the paid amount
+        self.balance -= amount
+
+        # The last pay property is updated
+        self.lastPay = date.today()
+
 # A function that loads a single user from 'path'
 def loadUser(path):
     # The user file at 'path' is opened and the content is split in lines,
@@ -189,15 +198,15 @@ def findName(idString):
                 return name
     return None    
 
-# The class of the reference user instance.
+# The class of the reference user instance, now a subclass of the user instance.
 # Reference users are the old users, that has not yet been created in the system
-class refUserInstance(object):
+class refUserInstance(userInstance):
 
-    # The reference user does not have nearly as many properties as the ordinary user
-    def __init__(self, name, mail, balance = 0):
-        self.name = name
-        self.mail = mail
-        self.balance = balance
+    # The reference user does not have nearly as many properties as the ordinary user,
+    # so the rest of the necessaries are set to None.
+    def __init__(self, name, mail, balance):
+        super(refUserInstance, self).__init__(name, mail, None, None, balance)
+        self.sduId = mail.split('@')[0]
 
 # A function that loads all reference users and returns them in a list 'refUsers'
 def loadRefUsers(refUsers = []):
