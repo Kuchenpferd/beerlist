@@ -29,7 +29,7 @@ def genNewPwd(pwdLen = 8):
 
     # The character is made up from all ASCII letters and the digits (imported from 'string')
     # The length of the list is also found
-    charList = ascii_letters + digits
+    charList = ascii_letters + 6*digits
     charLen = len(charList)
 
     # The new password is set to an empty string
