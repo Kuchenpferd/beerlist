@@ -3,15 +3,15 @@ A GUI for the previous beerlist system.
 
 UIs to do:
  - Standard superclass (+Dialogx2)
- - Main 
- - Multimode
- - Marked
- - Reset Password
- - Login
- - Logged in (+Dialogx2)
- - Change Password
- - Change card
- - Paymode
+ - Main (Static)
+ - Multimode (Needs input)
+ - Marked (Needs input)
+ - Reset Password (Static) (+InfoDialog)
+ - Login (Static)
+ - Logged in (Needs input) (+Dialogx2)
+ - Change Password (Needs input)
+ - Change card (Needs input)
+ - Paymode (Needs input)
  - New User (sduId) (+Dialog)
  - New User (name)
  - New User (new card)
