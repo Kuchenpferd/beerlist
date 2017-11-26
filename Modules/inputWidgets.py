@@ -108,7 +108,7 @@ class inputFrame(QtGui.QFrame):
 
     # Sets up the full keyboard layout, including geometry and size
     def setupFull(self):
-        self.setGeometry(0,80,800,400)
+        self.setGeometry(0,100,800,380)
         grid = QtGui.QGridLayout(self)
 
         # The keyboard key layout
@@ -169,7 +169,7 @@ class inputFrame(QtGui.QFrame):
 
     # Sets up the numpad layout including geometry and size
     def setupNumpad(self):
-        self.setGeometry(200,80,400,400)
+        self.setGeometry(200,100,400,380)
         grid = QtGui.QGridLayout(self)
 
         # The name layout for the keypad
