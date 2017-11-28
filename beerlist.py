@@ -43,6 +43,8 @@ class mainWindow(QtGui.QWidget):
             testUI = self.widgetStack.widget(indexUI)
             if testUI.id == idUI:
                 UI = testUI
+                break
+            print('Widget label not found: ' + idUI)
 
         # The UI is updated
         UI.update()        

@@ -2,8 +2,8 @@
 A GUI for the previous beerlist system.
 
 UIs to do:
- - Standard superclass (+Dialogx2)
- - Main (Static)
+ - Standard superclass (+Dialogx2) - Done!
+ - Main (Static) - Done!
  - Multimode (Needs input)
  - Marked (Needs input)
  - Reset Password (Static) (+InfoDialog)

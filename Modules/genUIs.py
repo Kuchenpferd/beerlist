@@ -17,8 +17,13 @@ uiIdList = ['None', 'mainMenu', 'multiMode', 'markDone', 'resetPwd',
 
 class expandButton(QtGui.QPushButton):
     def __init__(self, parent = None):
-        super(keyButton, self).__init__(parent)
+        super(expandButton, self).__init__(parent)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding))
+        newFont = self.font()
+        newFont.setPointSize(12)
+        newFont.setBold(True)
+        self.setFont(newFont)
+        
 
 # A super class for the standard UI
 class standardUI(QtGui.QWidget):
@@ -29,7 +34,7 @@ class standardUI(QtGui.QWidget):
         self.id = 'None'
 
         self.cardSequence = ''
-        self.swipeActive = False
+        self.swipeActive = True
 
         if menuButton:
             menuBtn = QtGui.QPushButton(self)
@@ -49,7 +54,7 @@ class standardUI(QtGui.QWidget):
     # Modifies the keyPressedEvent to specifically listen for SDU cards
     def keyPressEvent(self, event):
         if type(event) == QtGui.QKeyEvent:
-            if swipeActive:
+            if self.swipeActive:
                 # Check if the pressed keycode matches the card initializer 'æ'
                 if event.key() == 198:
                     # Clears the stored sequence, i.e. initialization
@@ -57,7 +62,7 @@ class standardUI(QtGui.QWidget):
                 # Check if the pressed keycode matches the card terminator (Either 'Enter' key, should be cleaned later)
                 elif event.key() == 16777221 or event.key() == 16777220:
                     # Placeholder for the event, where we can pass the card sequence, i.e. termination
-                    swipeAction()
+                    self.swipeAction()
                 # Always add the latest keypress at the end of the card sequence
                 self.cardSequence += event.text()
             
@@ -104,6 +109,7 @@ class standardUI(QtGui.QWidget):
             pass
     
     def swipeAction(self):
+        print(self.cardSequence)
         pass
     
     # A function that updates the UI, will be empty for static UIs, and content will be
@@ -113,45 +119,49 @@ class standardUI(QtGui.QWidget):
 
 class mainMenuUI(standardUI):
 
-    def init(self, mainWidget, parent = None):
+    def __init__(self, mainWidget, parent = None):
         super(mainMenuUI, self).__init__(mainWidget, parent, False, False)
         self.id = 'mainMenu'
         self.swipeActive = True
 
         multiBtn = expandButton(self)
         multiBtn.setText('Multi Mode')
-        multiBtn.clicked.connect(lambda: self.masterWidget.changeUI('multiMode'))
+        multiBtn.clicked.connect(lambda: self.mainWidget.changeUI('multiMode'))
 
         loginBtn = expandButton(self)
         loginBtn.setText('Login')
-        loginBtn.clicked.connect(lambda: self.masterWidget.changeUI('login'))
+        loginBtn.clicked.connect(lambda: self.mainWidget.changeUI('login'))
 
         newUserBtn = expandButton(self)
         newUserBtn.setText('New User')
-        newUserBtn.clicked.connect(lambda: self.masterWidget.changeUI('newUser-sduId'))
+        newUserBtn.clicked.connect(lambda: self.mainWidget.changeUI('newUser-sduId'))
 
         resetBtn = expandButton(self)
         resetBtn.setText('Reset Password')
-        resetBtn.clicked.connect(lambda: self.masterWidget.changeUI('resetPwd'))
+        resetBtn.clicked.connect(lambda: self.mainWidget.changeUI('resetPwd'))
 
         titleLabel = QtGui.QLabel(self)
         titleLabel.setText('Welcome to Æters Beerlist system v. 2.0')
-        titleLabel.font().setPointSize(14)
-        titleLabel.font().setBold(True)
+        newFont = titleLabel.font()
+        newFont.setPointSize(14)
+        newFont.setBold(True)
+        titleLabel.setFont(newFont)
 
         contentLabel = QtGui.QLabel(self)
         contentLabel.setText('To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"\n\nTo see your balance, change your password or card, please login')
-        contentLabel.setPointSize(10)
+        newFont = contentLabel.font()
+        newFont.setPointSize(10)
+        contentLabel.setFont(newFont)
 
         grid = QtGui.QGridLayout()
-        grid.addWidget(titleLabel, 0, 0, 2, 1)
-        grid.addWidget(contentLabel, 0, 1, 2, 2)
-        grid.addWidget(multiBtn, 0, 2)
-        grid.addWidget(loginBtn, 1, 2)
-        grid.addWidget(newUserBtn, 0, 3)
-        grid.addWidget(resetBtn, 1, 3)
+        grid.addWidget(titleLabel, 0, 1, 1, 2)
+        grid.addWidget(contentLabel, 1, 1, 1, 2)
+        grid.addWidget(multiBtn, 2, 0, 1, 2)
+        grid.addWidget(loginBtn, 2, 2, 1, 2)
+        grid.addWidget(newUserBtn, 3, 0, 1, 2)
+        grid.addWidget(resetBtn, 3, 2, 1, 2)
 
-        self.addLayout(grid)
+        self.setLayout(grid)
 
         
 
@@ -263,6 +273,7 @@ class genSecUI(standardUI):
         self.l3.setText(str(randint(0,100)))
         
 def main():
+    this = mainMenuUI(QtGui.QWidget(), QtGui.QWidget())
     pass
     
 if __name__ == '__main__':
