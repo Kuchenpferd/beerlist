@@ -10,6 +10,26 @@ from PyQt4 import QtGui, QtCore
 workFolder = './'
 resourceFolder = workFolder + 'Resources/'
 
+def changeFont(someLabel, size = 10, bold = False, align = 'l'):
+    if align == 'l':
+        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignLeft)
+    elif align == 'c':
+        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignHCenter)
+    elif align == 'r':
+        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignRight)
+        
+    newFont = someLabel.font()
+    newFont.setPointSize(size)
+    newFont.setBold(bold)
+    someLabel.setFont(newFont)
+    
+    try:
+        someLabel.setAlignment(alignment)
+    except:
+        pass
+    
+    return someLabel
+
 # Emulate a keypress of non-standard utf8 keys, through pyperclip
 def emuKeyPress(Key):
     pyperclip.copy(Key)
@@ -22,6 +42,7 @@ class keyButton(QtGui.QPushButton):
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding))
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.clicked.connect(self.onClick)
+        self = changeFont(self, 10)
 
     def onClick(self):
         None
@@ -88,6 +109,7 @@ class boardKeyButton(keyButton):
         # Determines if the key should be put in upper case
         if self.modShButton.isChecked():
             Key = Key.upper()
+            self.modShButton.click
         emuKeyPress(Key)
 
 # The class that contains the input layout
@@ -144,7 +166,7 @@ class inputFrame(QtGui.QFrame):
             elif name == 'enter':
                 btn = keyButton(self)
                 btn.setIcon(QtGui.QIcon(resourceFolder + 'enter-arrow.svg'))
-                self.Enter = btn                
+                self.enterBtn = btn                
                 grid.addWidget(btn, *position, 2, 2)
                 
             # Merely places the modfier keys in the grid
@@ -194,7 +216,7 @@ class inputFrame(QtGui.QFrame):
             elif name == 'enter':
                 btn = keyButton(self)
                 btn.setIcon(QtGui.QIcon(resourceFolder + 'enter-arrow.svg'))
-                self.Enter = btn
+                self.enterBtn = btn
 
             # Creating the ordinary buttons
             else:
@@ -238,7 +260,7 @@ class Example(QtGui.QWidget):
         Frame = inputFrame(inputType, self)
 
         # Afterwards the action of the enter key can then be set like so
-        Frame.Enter.clicked.connect(lambda: pag.typewrite('ENTER!'))
+        Frame.enterBtn.clicked.connect(lambda: pag.typewrite('ENTER!'))
         
         
 def main():

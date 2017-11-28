@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import Modules.inputWidgets as inputWidgets
 from loremipsum import get_paragraph, get_sentence
 from PyQt4 import QtGui, QtCore
 from random import randint
@@ -15,15 +16,31 @@ uiIdList = ['None', 'mainMenu', 'multiMode', 'markDone', 'resetPwd',
             'newUser-sduId', 'newUser-name', 'newUser-newCard',
             'newUser-oldUsers', 'newUser-balance', 'newUser-final']
 
+def changeFont(someLabel, size = 10, bold = False, align = 'l'):
+    if align == 'l':
+        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignLeft)
+    elif align == 'c':
+        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignHCenter)
+    elif align == 'r':
+        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignRight)
+        
+    newFont = someLabel.font()
+    newFont.setPointSize(size)
+    newFont.setBold(bold)
+    someLabel.setFont(newFont)
+    
+    try:
+        someLabel.setAlignment(alignment)
+    except:
+        pass
+    
+    return someLabel
+
 class expandButton(QtGui.QPushButton):
     def __init__(self, parent = None):
         super(expandButton, self).__init__(parent)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding))
-        newFont = self.font()
-        newFont.setPointSize(12)
-        newFont.setBold(True)
-        self.setFont(newFont)
-        
+        self = changeFont(self, 12, True)
 
 # A super class for the standard UI
 class standardUI(QtGui.QWidget):
@@ -34,7 +51,7 @@ class standardUI(QtGui.QWidget):
         self.id = 'None'
 
         self.cardSequence = ''
-        self.swipeActive = True
+        self.swipeActive = False
 
         if menuButton:
             menuBtn = QtGui.QPushButton(self)
@@ -74,7 +91,8 @@ class standardUI(QtGui.QWidget):
         
         # A message box is set up with a text and two buttons
         msg = QtGui.QMessageBox(self.mainWidget)
-        msg.setGeometry(370,225,60,30)
+        msg = changeFont(msg, 12, True)
+        msg.setGeometry(225,210,60,30)
         msg.setText('Do you want to return to the main menu?')
         msg.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
 
@@ -87,13 +105,14 @@ class standardUI(QtGui.QWidget):
 
         # Another check to so if the 'No' button was pressed
         elif pressedButton == QtGui.QMessageBox.No:
-            pass
+            self.update()
         
     def backDialog(self):
         
         # A message box is set up with a text and two buttons
         msg = QtGui.QMessageBox(self.mainWidget)
-        msg.setGeometry(370,225,60,30)
+        msg = changeFont(msg, 12, True)
+        msg.setGeometry(220,210,60,30)
         msg.setText('Do you want to return to previous screen?')
         msg.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
 
@@ -106,7 +125,7 @@ class standardUI(QtGui.QWidget):
 
         # Another check to so if the 'No' button was pressed
         elif pressedButton == QtGui.QMessageBox.No:
-            pass
+            self.update()
     
     def swipeAction(self):
         print(self.cardSequence)
@@ -117,10 +136,10 @@ class standardUI(QtGui.QWidget):
     def update(self):
         pass
 
-class mainMenuUI(standardUI):
+class mainMenu(standardUI):
 
     def __init__(self, mainWidget, parent = None):
-        super(mainMenuUI, self).__init__(mainWidget, parent, False, False)
+        super(mainMenu, self).__init__(mainWidget, parent, False, False)
         self.id = 'mainMenu'
         self.swipeActive = True
 
@@ -142,16 +161,11 @@ class mainMenuUI(standardUI):
 
         titleLabel = QtGui.QLabel(self)
         titleLabel.setText('Welcome to Æters Beerlist system v. 2.0')
-        newFont = titleLabel.font()
-        newFont.setPointSize(14)
-        newFont.setBold(True)
-        titleLabel.setFont(newFont)
+        titleLabel = changeFont(titleLabel, 14, True, 'c')
 
         contentLabel = QtGui.QLabel(self)
-        contentLabel.setText('To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"\n\nTo see your balance, change your password or card, please login')
-        newFont = contentLabel.font()
-        newFont.setPointSize(10)
-        contentLabel.setFont(newFont)
+        contentLabel.setText('To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"!\nTo see your balance, grab beers without your card,\nchange your password or card, please login!')
+        contentLabel = changeFont(contentLabel)
 
         grid = QtGui.QGridLayout()
         grid.addWidget(titleLabel, 0, 1, 1, 2)
@@ -163,7 +177,46 @@ class mainMenuUI(standardUI):
 
         self.setLayout(grid)
 
+
+
+class multiMode(standardUI):
+
+    def __init__(self, mainWidget, parent = None):
+        super(multiMode, self).__init__(mainWidget, parent)
+        self.id = 'multiMode'
+        self.swipeActive = True
+
+        numPad = inputWidgets.inputFrame('numpad', self)
+        numPad.enterBtn.clicked.connect(self.enterAction)
+
+        contentFrame = QtGui.QFrame(self)
+        contentFrame.setFrameShape(0)
+        contentFrame.setGeometry(100, 0, 600, 100)
+
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText('Please enter the wanted amount and swipe your card')
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+
+        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = changeFont(inputEdit, 12, False, 'c')
+        self.inputEdit = inputEdit
         
+        vbox = QtGui.QVBoxLayout()
+        vbox.addWidget(titleLabel)
+        vbox.addWidget(inputEdit)
+        
+        contentFrame.setLayout(vbox)
+
+    def enterAction(self):
+        pass
+
+    def update(self):
+        self.inputEdit.setFocus(True)
+
+        
+        
+
 
 
 
@@ -273,7 +326,6 @@ class genSecUI(standardUI):
         self.l3.setText(str(randint(0,100)))
         
 def main():
-    this = mainMenuUI(QtGui.QWidget(), QtGui.QWidget())
     pass
     
 if __name__ == '__main__':

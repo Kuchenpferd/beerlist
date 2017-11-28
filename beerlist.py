@@ -19,14 +19,16 @@ class mainWindow(QtGui.QWidget):
         self.widgetStack.setGeometry(0,0,800,480)
 
         # Each UI is set up
-        mainMenu = genUIs.mainMenuUI(self, self.widgetStack)
+        mainMenuUI = genUIs.mainMenu(self, self.widgetStack)
+        multiModeUI = genUIs.multiMode(self, self.widgetStack)
 
         # .. and then added to the widget stack
-        self.widgetStack.addWidget(mainMenu)
+        self.widgetStack.addWidget(mainMenuUI)
+        self.widgetStack.addWidget(multiModeUI)
 
         # The main UI is set as the current widget and everything is shown
-        self.widgetStack.setCurrentWidget(mainMenu)
-        self.lastWidgetId = mainMenu.id
+        self.widgetStack.setCurrentWidget(mainMenuUI)
+        self.lastWidgetId = mainMenuUI.id
         self.show()
 
         
@@ -44,13 +46,13 @@ class mainWindow(QtGui.QWidget):
             if testUI.id == idUI:
                 UI = testUI
                 break
-            print('Widget label not found: ' + idUI)
-
-        # The UI is updated
-        UI.update()        
 
         # .. and then set to be the active UI
         self.widgetStack.setCurrentWidget(UI)
+        
+        # The UI is updated
+        UI.update()        
+
 
     
         
