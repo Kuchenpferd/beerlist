@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import Modules.inputWidgets as inputWidgets
+import inputWidgets
 from loremipsum import get_paragraph, get_sentence
 from PyQt4 import QtGui, QtCore
 from random import randint
 
-workFolder = './'
+workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
 
 # List of UI ids:
 uiIdList = ['None', 'mainMenu', 'multiMode', 'markDone', 'resetPwd',
-            'login', 'loggedIn', 'ChangePwd', 'ChangeCard', 'payMode',
+            'login', 'loggedIn', 'changePwd', 'changeCard', 'payMode',
             'newUser-sduId', 'newUser-name', 'newUser-newCard',
             'newUser-oldUsers', 'newUser-balance', 'newUser-final']
 
@@ -200,130 +200,263 @@ class multiMode(standardUI):
 
         inputEdit = QtGui.QLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
+        inputEdit.setMaxLength(2)
         self.inputEdit = inputEdit
         
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtGui.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
         vbox.addWidget(inputEdit)
         
         contentFrame.setLayout(vbox)
 
     def enterAction(self):
-        pass
+        self.mainWidget.changeUI('markDone')
 
     def update(self):
+        self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
 
-        
-        
-
-
-
-
-
-
-# A class for the main UI
-class genMainUI(standardUI):
-
-    # The init function sets up the content of the UI, note that the main widget is passed
-    # as well, and internalized for ease of use. The id is also specified
+class markDone(standardUI):
     def __init__(self, mainWidget, parent = None):
-        super(genMainUI, self).__init__(parent)
-        self.masterWidget = mainWidget
-        self.id = 'mainUI'
+        super(markDone, self).__init__(mainWidget, parent, False, False)
+        self.id = 'markDone'
 
-        # Next the content of the screen is set up:
-            
-        # A button to move to the next screen is set up. The clicked signal is connected
-        # to a function within the main window to change UI to secUI
-        btn = QtGui.QPushButton('Next', self)
-        btn.clicked.connect(lambda: self.masterWidget.changeUI('secUI'))
+        contentString = 'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!'
 
-        # A few labels is set up
-        l1 = QtGui.QLabel(self)
-        l2 = QtGui.QLabel(self)
+        contentLabel = QtGui.QLabel(self)
+        contentLabel = changeFont(contentLabel, 12, True, 'c')
+        contentLabel.setText(contentString)
+        self.contentLabel = contentLabel
 
-        # And given some content with the loremipsum package
-        l1.setText(get_sentence(True))
-        l2.setText(get_sentence(True) + get_sentence(True) + get_sentence(True) + get_sentence(True) + '\n\n' + get_sentence(True))
-            
-        l2.setWordWrap(True)
+        menuBtn = expandButton(self)
+        menuBtn.setIcon(QtGui.QIcon(resourceFolder + 'home.svg'))
+        menuBtn.clicked.connect(lambda: self.mainWidget.changeUI('mainMenu'))
 
-        # A vertical layout is set up, and the labels and button are added
-        vbox = QtGui.QVBoxLayout()
-        vbox.addWidget(l1)
-        vbox.addStretch(2)
-        vbox.addWidget(l2)
-        vbox.addStretch()
-        vbox.addWidget(btn)
+        payBtn = expandButton(self)
+        #payBtn = changeFont(payBtn, 12, True, 'c')
+        payBtn.setText('Pay debt')
+        payBtn.clicked.connect(lambda: self.mainWidget.changeUI('payMode'))
+        self.payBtn = payBtn
 
-        # At last the layout is added to the widget
-        self.setLayout(vbox)
+        grid = QtGui.QGridLayout(self)
+        grid.setRowStretch(0,1)
+        grid.setRowStretch(1,2)
+        grid.setRowStretch(2,2)
+        grid.setRowStretch(3,1)
+        grid.setColumnStretch(0,1)
+        grid.setColumnStretch(3,1)
+        grid.addWidget(contentLabel, 1, 1, 1, 2)
+        grid.addWidget(payBtn, 2, 1)
+        grid.addWidget(menuBtn, 2, 2)
 
-# The class to set up the secondary UI
-class genSecUI(standardUI):
+        self.setLayout(grid)
 
-    # The main widget is once again internalized and the id of the UI is set
+class resetPwd(standardUI):
     def __init__(self, mainWidget, parent = None):
-        super(genSecUI, self).__init__(parent)
-        self.masterWidget = mainWidget
-        self.id = 'secUI'
+        super(resetPwd, self).__init__(mainWidget, parent)
+        self.id = 'resetPwd'
+
+        keyBoard = inputWidgets.inputFrame('full', self)
+        keyBoard.enterBtn.clicked.connect(self.enterAction)
+
+        contentFrame = QtGui.QFrame(self)
+        contentFrame.setFrameShape(0)
+        contentFrame.setGeometry(100, 0, 600, 100)
+
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText('Please enter your sdu-ID to reset your password:')
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+
+        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = changeFont(inputEdit, 12, False, 'c')
+        self.inputEdit = inputEdit
         
-        # This UI also has a button to move back to the previous UI,
-        # but it is connected to a dialog option (see below)
-        btn1 = QtGui.QPushButton('Next', self)
-        btn1.clicked.connect(self.toMainDialog)
-
-        # The other button here only serves the purpose of updating content within the current UI
-        btn2 = QtGui.QPushButton('Update', self)
-        btn2.clicked.connect(self.update)
-
-        # Once again a few labels is set up and everything is added to a VBox layout.
-        # Note that if any conent is updateable, it should be added to self as an attribute
-        l1 = QtGui.QLabel(self)
-        l2 = QtGui.QLabel(self)
-        self.l3 = QtGui.QLabel(self)
-            
-        l1.setText('Who and where?!')
-        l2.setText('What is going on!??!')
-        self.l3.setText(str(randint(0,100)))
+        vbox = QtGui.QVBoxLayout(contentFrame)
+        vbox.addWidget(titleLabel)
+        vbox.addWidget(inputEdit)
         
-        l2.setWordWrap(True)
-    
-        vbox = QtGui.QVBoxLayout()
-        vbox.addStretch()
-        vbox.addWidget(l1)
-        vbox.addWidget(l2)
-        vbox.addWidget(self.l3)
-        vbox.addWidget(btn1)
-        vbox.addWidget(btn2)
-            
-        # At last the layout is added to the widget
-        self.setLayout(vbox)
+        contentFrame.setLayout(vbox)
 
-    # An example of a pop-up dialog, with a simple yes/no question
-    def toMainDialog(self):
-        
-        # A message box is set up with a text and two buttons
-        msg = QtGui.QMessageBox(self.masterWidget)
-        msg.setGeometry(50,100,60,30)
-        msg.setText('Do you want to go move on?')
-        msg.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-
-        # msg.exec_() will return the value of the pressed button
-        pressedButton = msg.exec_()
-
-        # A check to see if the 'Yes' button was pressed, and the UI is then changed
-        if pressedButton == QtGui.QMessageBox.Yes:
-            self.masterWidget.changeUI('mainUI')
-
-        # Another check to so if the 'No' button was pressed
-        elif pressedButton == QtGui.QMessageBox.No:
-            pass
-
-    # The standard (empty) update method is updated to update the content of the UI
     def update(self):
-        self.l3.setText(str(randint(0,100)))
+        self.inputEdit.setText('')
+        self.inputEdit.setFocus(True)
+
+    def enterAction(self):
+        pass
+
+class login(standardUI):
+    def __init__(self, mainWidget, parent = None):
+        super(login, self).__init__(mainWidget, parent)
+        self.id = 'login'
+        self.swipeActive = True
+
+        keyBoard = inputWidgets.inputFrame('full', self)
+        keyBoard.enterBtn.clicked.connect(self.enterAction)
+
+        contentFrame = QtGui.QFrame(self)
+        contentFrame.setFrameShape(0)
+        contentFrame.setGeometry(100, 0, 600, 100)
+
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText('Please enter your sdu-ID or swipe your card to login:')
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+
+        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = changeFont(inputEdit, 12, False, 'c')
+        self.inputEdit = inputEdit
+        
+        vbox = QtGui.QVBoxLayout(contentFrame)
+        vbox.addWidget(titleLabel)
+        vbox.addWidget(inputEdit)
+        
+        contentFrame.setLayout(vbox)
+
+    def update(self):
+        self.input = 0
+        self.titleLabel.setText('Please enter your sdu-ID or swipe your card to login:')
+        self.inputEdit.setText('')
+        self.inputEdit.setFocus(True)
+        self.inputEdit.setEchoMode(QtGui.QLineEdit.Normal)
+
+    def enterAction(self):
+        if self.input == 0:
+            self.titleLabel.setText('Please enter your password:')
+            self.input = 1
+            self.inputEdit.setFocus(True)
+            self.inputEdit.setEchoMode(QtGui.QLineEdit.Password)
+            self.inputEdit.setText('')
+        elif self.input == 1:
+            self.mainWidget.changeUI('loggedIn')
+
+class loggedIn(standardUI):
+    def __init__(self, mainWidget, parent = None):
+        super(loggedIn, self).__init__(mainWidget, parent)
+        self.id = 'loggedIn'
+
+        titleString = 'Welcome {name}!\nYour current balance is {balance} kr!\nA negative balance is a good thing!'
+        
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText(titleString)
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+        
+        oneBtn = expandButton(self)
+        oneBtn.setText('One mark')
+        oneBtn.clicked.connect(lambda: self.mainWidget.changeUI('markDone'))
+        
+        multiBtn = expandButton(self)
+        multiBtn.setText('Multi mode')
+        multiBtn.clicked.connect(lambda: self.mainWidget.changeUI('multiMode'))
+
+        payBtn = expandButton(self)
+        payBtn.setText('Pay')
+        payBtn.clicked.connect(lambda: self.mainWidget.changeUI('payMode'))
+
+        chnPwdBtn = expandButton(self)
+        chnPwdBtn.setText('Change Password')
+        chnPwdBtn.clicked.connect(lambda: self.mainWidget.changeUI('changePwd'))
+
+        chnCardBtn = expandButton(self)
+        chnCardBtn.setText('Change Card')
+        chnCardBtn.clicked.connect(lambda: self.mainWidget.changeUI('changeCard'))
+
+        grid = QtGui.QGridLayout(self)
+        grid.setRowStretch(0,1.1)
+        grid.setRowStretch(1,1)
+        grid.setRowStretch(2,1)
+        grid.addWidget(titleLabel, 0, 1, 1, 4)
+        grid.addWidget(oneBtn, 1, 0, 1, 2)
+        grid.addWidget(multiBtn, 1, 2, 1, 2)
+        grid.addWidget(payBtn, 1, 4, 1, 2)
+        grid.addWidget(chnPwdBtn, 2, 1, 1, 2)
+        grid.addWidget(chnCardBtn, 2, 3, 1, 2)
+
+        self.setLayout(grid)
+
+class changePwd(standardUI):
+    def __init__(self, mainWidget, parent = None):
+        super(changePwd, self).__init__(mainWidget, parent)
+        self.id = 'changePwd'
+
+        self.input = 0
+
+        keyBoard = inputWidgets.inputFrame('full', self)
+        keyBoard.enterBtn.clicked.connect(self.enterAction)
+
+        contentFrame = QtGui.QFrame(self)
+        contentFrame.setFrameShape(0)
+        contentFrame.setGeometry(100, 0, 600, 100)
+
+        self.titleString0 = 'Please your new password:'
+        self.titleString1 = 'Please enter it again:'
+
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText(self.titleString0)
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+
+        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = changeFont(inputEdit, 12, False, 'c')
+        inputEdit.setEchoMode(QtGui.QLineEdit.Password)
+        self.inputEdit = inputEdit
+        
+        vbox = QtGui.QVBoxLayout(contentFrame)
+        vbox.addWidget(titleLabel)
+        vbox.addWidget(inputEdit)
+        
+        contentFrame.setLayout(vbox)
+
+    def enterAction(self):
+        if self.input == 0:
+            self.titleLabel.setText(self.titleString1)
+            self.input = 1
+            self.inputEdit.setText('')
+            self.inputEdit.setFocus(True)
+        elif self.input == 1:
+            self.mainWidget.changeUI('loggedIn')
+
+    def update(self):
+        self.titleLabel.setText(self.titleString0)
+        self.input = 0
+        self.inputEdit.setText('')
+        self.inputEdit.setFocus(True)
+
+class changeCard(standardUI):
+    def __init__(self, mainWidget, parent = None):
+        super(changeCard, self).__init__(mainWidget, parent)
+        self.id = 'changeCard'
+        self.swipeActive = True
+
+        self.input = 0
+
+        self.titleString0 = 'Hi {name}!\nTo register a new card please swipe it now!'
+        self.titleString1 = 'Please swipe again to finally change your card!'
+        
+        
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText(self.titleString0)
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+
+        vbox = QtGui.QVBoxLayout(self)
+        vbox.addStretch(1)
+        vbox.addWidget(titleLabel)
+        vbox.addStretch(1)
+        
+        self.setLayout(vbox)
+
+    def swipeAction(self):
+        if self.input == 0:
+            self.titleLabel.setText(self.titleString1)
+            self.input = 1
+        elif self.input == 1:
+            self.mainWidget.changeUI('loggedIn')
+
+    def update(self):
+        self.titleLabel.setText(self.titleString0)
+        self.input = 0
+        
         
 def main():
     pass

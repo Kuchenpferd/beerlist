@@ -13,7 +13,7 @@ from string import ascii_letters, digits
 from random import randrange
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
-workFolder = './'
+workFolder = './../'
 
 # Additional destinations
 resourceFolder = workFolder + 'Resources/'

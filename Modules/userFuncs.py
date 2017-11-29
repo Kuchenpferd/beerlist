@@ -6,7 +6,7 @@ import csv
 from datetime import date, datetime
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
-workFolder = './'
+workFolder = './../'
 
 # Additional destinations
 resourceFolder = workFolder + 'Resources/'

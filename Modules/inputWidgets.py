@@ -7,7 +7,7 @@ import pyautogui as pag
 from PyQt4 import QtGui, QtCore
 
 # Path to determine the resource folder (Should be changed, when imported
-workFolder = './'
+workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
 
 def changeFont(someLabel, size = 10, bold = False, align = 'l'):
@@ -109,7 +109,7 @@ class boardKeyButton(keyButton):
         # Determines if the key should be put in upper case
         if self.modShButton.isChecked():
             Key = Key.upper()
-            self.modShButton.click
+            self.modShButton.click()
         emuKeyPress(Key)
 
 # The class that contains the input layout

@@ -3,7 +3,7 @@
 
 import sys
 from PyQt4 import QtGui, QtCore
-import Modules.genUIs as genUIs
+import genUIs
         
 # The class for the main window, which is the main container of everything
 class mainWindow(QtGui.QWidget):
@@ -21,10 +21,22 @@ class mainWindow(QtGui.QWidget):
         # Each UI is set up
         mainMenuUI = genUIs.mainMenu(self, self.widgetStack)
         multiModeUI = genUIs.multiMode(self, self.widgetStack)
+        markDoneUI = genUIs.markDone(self, self.widgetStack)
+        resetPwdUI = genUIs.resetPwd(self, self.widgetStack)
+        loginUI = genUIs.login(self, self.widgetStack)
+        loggedInUI = genUIs.loggedIn(self, self.widgetStack)
+        changePwdUI = genUIs.changePwd(self, self.widgetStack)
+        changeCardUI = genUIs.changeCard(self, self.widgetStack)
 
         # .. and then added to the widget stack
         self.widgetStack.addWidget(mainMenuUI)
         self.widgetStack.addWidget(multiModeUI)
+        self.widgetStack.addWidget(markDoneUI)
+        self.widgetStack.addWidget(resetPwdUI)
+        self.widgetStack.addWidget(loginUI)
+        self.widgetStack.addWidget(loggedInUI)
+        self.widgetStack.addWidget(changePwdUI)
+        self.widgetStack.addWidget(changeCardUI)
 
         # The main UI is set as the current widget and everything is shown
         self.widgetStack.setCurrentWidget(mainMenuUI)
