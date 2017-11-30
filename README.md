@@ -4,14 +4,14 @@ A GUI for the previous beerlist system.
 UIs to do:
  - Standard superclass (+Dialogx2) - Done!
  - Main (Static) - (UI done, lacks functionality)
- - Multimode (Needs input) (+Dialog) (UI done, lacks functionality)
+ - Multimode (Needs input) (UI done, lacks functionality) (+Dialog) 
  - Marked (Needs input) (UI done, lacks functionality)
- - Reset Password (Static) (+InfoDialog) (UI done, lacks functionality)
+ - Reset Password (Static) (UI done, lacks functionality) (+InfoDialog)
  - Login (Static) (UI done, lacks functionality)
- - Logged in (Needs input) (+Dialogx2) (UI done, lacks functionality)
+ - Logged in (Needs input) (UI done, lacks functionality)(+Dialogx2) 
  - Change Password (Needs input) (UI done, lacks functionality)
  - Change card (Needs input) (UI done, lacks functionality)
- - Paymode (Needs input)
+ - Paymode (Needs input) (UI done, lacks functionality)
  - New User (sduId) (+Dialog)
  - New User (name)
  - New User (new card)
@@ -20,4 +20,4 @@ UIs to do:
  - New User (balance)
  - New User (Final)
 
-Dependencies: PyQt4, pyautogui, pyperclip
+Dependencies: PyQt4, pyautogui, pyperclip, pyqrcode, pypng

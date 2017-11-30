@@ -221,11 +221,11 @@ class markDone(standardUI):
         super(markDone, self).__init__(mainWidget, parent, False, False)
         self.id = 'markDone'
 
-        contentString = 'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!'
+        self.contentString = 'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!'
 
         contentLabel = QtGui.QLabel(self)
         contentLabel = changeFont(contentLabel, 12, True, 'c')
-        contentLabel.setText(contentString)
+        contentLabel.setText(self.contentString)
         self.contentLabel = contentLabel
 
         menuBtn = expandButton(self)
@@ -233,7 +233,6 @@ class markDone(standardUI):
         menuBtn.clicked.connect(lambda: self.mainWidget.changeUI('mainMenu'))
 
         payBtn = expandButton(self)
-        #payBtn = changeFont(payBtn, 12, True, 'c')
         payBtn.setText('Pay debt')
         payBtn.clicked.connect(lambda: self.mainWidget.changeUI('payMode'))
         self.payBtn = payBtn
@@ -334,10 +333,10 @@ class loggedIn(standardUI):
         super(loggedIn, self).__init__(mainWidget, parent)
         self.id = 'loggedIn'
 
-        titleString = 'Welcome {name}!\nYour current balance is {balance} kr!\nA negative balance is a good thing!'
+        self.titleString = 'Welcome {name}!\nYour current balance is {balance} kr!\nA negative balance is a good thing!'
         
         titleLabel = QtGui.QLabel(self)
-        titleLabel.setText(titleString)
+        titleLabel.setText(self.titleString)
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
         
@@ -456,7 +455,54 @@ class changeCard(standardUI):
     def update(self):
         self.titleLabel.setText(self.titleString0)
         self.input = 0
+
+class payMode(standardUI):
+    def __init__(self, mainWidget, parent = None):
+        super(payMode, self).__init__(mainWidget, parent)
+        self.id = 'payMode'
+
+        self.extraAmount = 50
+
+        self.titleString = '\nScan this to pay your balance {operator} {extraAmount} kr,\nthat is {totalAmount} kr'
         
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText(self.titleString)
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+
+        qrLabel = QtGui.QLabel(self)
+        qrLabel.setPixmap(QtGui.QPixmap(resourceFolder + 'qrcode.png').scaledToHeight(300))
+        qrLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
+        self.qrLabel = qrLabel
+
+        minusBtn = expandButton(self)
+        minusBtn.setText('- 50')
+        minusBtn.clicked.connect(lambda: self.updateQr('minus'))
+        
+        balBtn = expandButton(self)
+        balBtn.setText('Exact balance')
+        balBtn.clicked.connect(lambda: self.updateQr('balance'))
+        
+        plusBtn = expandButton(self)
+        plusBtn.setText('+ 50')
+        plusBtn.clicked.connect(lambda: self.updateQr('plus'))
+
+        grid = QtGui.QGridLayout(self)
+        grid.addWidget(titleLabel, 1, 1, 1, 4)
+        grid.addWidget(qrLabel, 2, 1, 1, 4)
+        grid.addWidget(minusBtn, 3, 0, 1, 2)
+        grid.addWidget(balBtn, 3, 2, 1, 2)
+        grid.addWidget(plusBtn, 3, 4, 1, 2)
+
+        self.setLayout(grid)
+
+    def updateQr(self, operator):
+        pass
+
+    def update(self):
+        pass
+
+
         
 def main():
     pass

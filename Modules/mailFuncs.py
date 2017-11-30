@@ -3,6 +3,7 @@
 
 import os
 import smtplib
+import pyqrcode
 from userFuncs import saveUser
 from hashlib import sha256
 from time import sleep
@@ -54,8 +55,8 @@ def generateQR(user, extraAmount, returnLink = False):
         
     # The QR content and the command string is created and then the command is run in the shell
     qrContent = '"mobilepay://send?amount={}&phone=98050&comment={}"'.format(amount, user.sduId)
-    command = 'qrencode -s 10 -l M -o ' + resourceFolder + 'qrcode.png ' + qrContent
-    os.system(command)
+    qrCode = pyqrcode.create(qrContent, error = 'M', version = 6, mode = 'binary')
+    qrCode.png(resourceFolder + 'qrcode.png', scale = 6, module_color = [0, 0, 0, 256], background = [0xff, 0xff, 0xff])
 
     # Afterwards the path to the picture is returned, along with the content of the QR
     # code (only if explicitly requested)

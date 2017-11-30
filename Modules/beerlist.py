@@ -27,6 +27,7 @@ class mainWindow(QtGui.QWidget):
         loggedInUI = genUIs.loggedIn(self, self.widgetStack)
         changePwdUI = genUIs.changePwd(self, self.widgetStack)
         changeCardUI = genUIs.changeCard(self, self.widgetStack)
+        payModeUI = genUIs.payMode(self, self.widgetStack)
 
         # .. and then added to the widget stack
         self.widgetStack.addWidget(mainMenuUI)
@@ -37,6 +38,7 @@ class mainWindow(QtGui.QWidget):
         self.widgetStack.addWidget(loggedInUI)
         self.widgetStack.addWidget(changePwdUI)
         self.widgetStack.addWidget(changeCardUI)
+        self.widgetStack.addWidget(payModeUI)
 
         # The main UI is set as the current widget and everything is shown
         self.widgetStack.setCurrentWidget(mainMenuUI)
