@@ -3,9 +3,7 @@
 
 import sys
 import inputWidgets
-from loremipsum import get_paragraph, get_sentence
 from PyQt4 import QtGui, QtCore
-from random import randint
 
 workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
@@ -13,7 +11,7 @@ resourceFolder = workFolder + 'Resources/'
 # List of UI ids:
 uiIdList = ['None', 'mainMenu', 'multiMode', 'markDone', 'resetPwd',
             'login', 'loggedIn', 'changePwd', 'changeCard', 'payMode',
-            'newUserInitial', 'newUserCard', 'newUser-oldUsers',
+            'newUserInitial', 'newUserCard', 'newUserOldUsers',
             'newUser-balance', 'newUser-final']
 
 def changeFont(someLabel, size = 10, bold = False, align = 'l'):
@@ -436,12 +434,13 @@ class changeCard(standardUI):
 
         self.input = 0
 
-        self.titleString = ['Please swipe again to finally change your card!',
-                            'Hi {name}!\nTo register a new card please swipe it now!']
+        self.titleString = ['Hi {name}!\nTo register a new card please swipe it now!',
+                            'Please swipe again to finally change your card!']
         
         titleLabel = QtGui.QLabel(self)
         titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
 
         vbox = QtGui.QVBoxLayout(self)
         vbox.addStretch(1)
@@ -452,13 +451,13 @@ class changeCard(standardUI):
 
     def swipeAction(self):
         if self.input == 0:
-            self.titleLabel.setText(self.titleString[0])
+            self.titleLabel.setText(self.titleString[1])
             self.input = 1
         elif self.input == 1:
             self.mainWidget.changeUI('loggedIn')
 
     def update(self):
-        self.titleLabel.setText(self.titleString[1])
+        self.titleLabel.setText(self.titleString[0])
         self.input = 0
 
 class payMode(standardUI):
@@ -468,11 +467,12 @@ class payMode(standardUI):
 
         self.extraAmount = 50
 
-        self.titleString = '\nScan this to pay your balance {operator} {extraAmount} kr,\nthat is {totalAmount} kr'
+        self.titleString = 'Scan this to pay your balance {operator} {extraAmount} kr,\nthat is {totalAmount} kr'
         
         titleLabel = QtGui.QLabel(self)
         titleLabel.setText(self.titleString)
         titleLabel = changeFont(titleLabel, 12, True, 'c')
+        titleLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
         self.titleLabel = titleLabel
 
         self.qrPixmap = QtGui.QPixmap(resourceFolder + 'qrcode.png').scaledToHeight(300)
@@ -494,6 +494,9 @@ class payMode(standardUI):
         plusBtn.clicked.connect(lambda: self.updateQr('plus'))
 
         grid = QtGui.QGridLayout(self)
+        grid.setRowStretch(1, 1)
+        grid.setRowStretch(2, 3)
+        grid.setRowStretch(3, 1)
         grid.addWidget(titleLabel, 1, 1, 1, 4)
         grid.addWidget(qrLabel, 2, 1, 1, 4)
         grid.addWidget(minusBtn, 3, 0, 1, 2)
@@ -525,8 +528,9 @@ class newUserInitial(standardUI):
         self.titleString = ['Please enter your SDU-ID:',
                             'Please enter your full name:',
                             'Please enter your preferred SDU-ID:',
-                            'Please enter your sdu email:']
-        self.titleString[0] = self.titleString[1]
+                            'Please enter your sdu email:',
+                            'Please enter a password (min. 6 chars):',
+                            'Please enter the password again']
 
         titleLabel = QtGui.QLabel(self)
         titleLabel.setText(self.titleString[0])
@@ -575,6 +579,7 @@ class newUserInitial(standardUI):
         self.grid.addWidget(self.titleLabel, 0, 0, 1, 3)
         
         self.inputEdit.setText('')
+        self.inputEdit.setEchoMode(QtGui.QLineEdit.Normal)
         self.inputEdit.setFocus(True)
 
     def enterAction(self):
@@ -586,24 +591,174 @@ class newUserInitial(standardUI):
             self.empBtn.hide()
 
             self.grid.removeWidget(self.titleLabel)
+            self.inputEdit.setEchoMode(QtGui.QLineEdit.Normal)
             self.grid.addWidget(self.titleLabel, 0, 0, 1, 4)
+            self.inputEdit.setFocus(True)  
             
         elif self.input == 'sduIdAlt':
             self.input = 'name'
 
             self.titleLabel.setText(self.titleString[1])
-            
+            self.inputEdit.setEchoMode(QtGui.QLineEdit.Normal)
+            self.inputEdit.setFocus(True)  
+        
         elif self.input == 'name':
             self.input = 'mail'
 
             self.titleLabel.setText(self.titleString[3])
+            self.inputEdit.setEchoMode(QtGui.QLineEdit.Normal)
+            self.inputEdit.setFocus(True)  
 
         elif self.input == 'mail':
-            self.mainWidget.changeUI('newUserCard')
+            self.input = 'firstPwd'
 
-        self.inputEdit.setText('')
-        self.inputEdit.setFocus(True)
+            self.titleLabel.setText(self.titleString[4])
+            self.inputEdit.setEchoMode(QtGui.QLineEdit.Password)
+            self.inputEdit.setFocus(True)
+
+        elif self.input == 'firstPwd':
+            self.input = 'secPwd'
+
+            self.titleLabel.setText(self.titleString[5])
+            self.inputEdit.setFocus(True)
+
+        elif self.input == 'secPwd':
+            self.mainWidget.changeUI('newUserCard')
             
+        self.inputEdit.setText('')
+
+class newUserCard(standardUI):
+    def __init__(self, mainWidget, parent = None):
+        super(newUserCard, self).__init__(mainWidget, parent)
+        self.id = 'newUserCard'
+        self.swipeActive = True
+
+        self.input = 0
+
+        self.titleString = ['Hi {name}!\nPlease swipe your card!',
+                            'Please swipe it again!']
+        
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText(self.titleString[0])
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+
+        vbox = QtGui.QVBoxLayout(self)
+        vbox.addStretch(1)
+        vbox.addWidget(titleLabel)
+        vbox.addStretch(1)
+        
+        self.setLayout(vbox)
+
+    def swipeAction(self):
+        if self.input == 0:
+            self.titleLabel.setText(self.titleString[1])
+            self.input = 1
+        elif self.input == 1:
+            self.mainWidget.changeUI('newUserOldUsers')
+
+    def update(self):
+        self.titleLabel.setText(self.titleString[0])
+        self.input = 0
+
+class newUserOldUsers(standardUI):
+
+    def __init__(self, mainWidget, parent = None):
+        super(newUserOldUsers, self).__init__(mainWidget, parent)
+        self.id = 'newUserOldUsers'
+
+        self.titleString = 'Please find try to find yourself on the list:'
+
+        self.noItems = 8
+
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText(self.titleString)
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        titleLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
+
+        headerString = ['Name:',
+                         'Mail:',
+                         'Balance:']
+
+        headerLabel = [QtGui.QLabel(self), QtGui.QLabel(self), QtGui.QLabel(self)]
+
+        for i in range(3):
+            headerLabel[i].setText(headerString[i])
+            headerLabel[i] = changeFont(headerLabel[i], 10, True)
+            #headerLabel[i].setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
+
+        nextBtn = expandButton(self)
+        nextBtn.setText('Next page!')
+        nextBtn = changeFont(nextBtn, 12, True, 'c')
+        self.nextBtn = nextBtn
+        
+        prevBtn = expandButton(self)
+        prevBtn.setText('Previous page!')
+        prevBtn = changeFont(prevBtn, 12, True, 'c')
+        self.prevBtn = prevBtn
+        
+        grid = QtGui.QGridLayout(self)
+        grid.addWidget(titleLabel, 0, 1, 1, 4)
+        grid.addWidget(headerLabel[0], 1, 0, 1, 2)
+        grid.addWidget(headerLabel[1], 1, 2, 1, 2)
+        grid.addWidget(headerLabel[2], 1, 4)
+        grid.addWidget(prevBtn, self.noItems + 3, 0, 1, 3)
+        grid.addWidget(nextBtn, self.noItems + 3, 3, 1, 3)
+
+        nameLabels = []
+        self.nameLabels = nameLabels
+        mailLabels = []
+        self.mailLabels = mailLabels
+        balanceLabels = []
+        self.balanceLabels = balanceLabels
+        meBtns = []
+        self.meBtns = meBtns
+        
+        for i in range(self.noItems):
+            grid.setRowStretch(i + 2, 1)
+            
+            nameLabels.append(QtGui.QLabel(self))
+            nameLabels[i].setText('{name}')
+            nameLabels[i] = changeFont(nameLabels[i], 10)
+            
+            mailLabels.append(QtGui.QLabel(self))
+            mailLabels[i].setText('{mail}')
+            mailLabels[i] = changeFont(mailLabels[i], 10)
+            
+            balanceLabels.append(QtGui.QLabel(self))
+            balanceLabels[i].setText('{balance}')
+            balanceLabels[i] = changeFont(balanceLabels[i], 10)
+
+            meBtns.append(expandButton(self))
+            meBtns[i].setText('Me!')
+            meBtns[i] = changeFont(meBtns[i], 10)
+            meBtns[i].clicked.connect(lambda: self.foundAction('id'))
+
+            grid.addWidget(nameLabels[i], i + 2, 0, 1, 2)
+            grid.addWidget(mailLabels[i], i + 2, 2, 1, 2)
+            grid.addWidget(balanceLabels[i], i + 2, 4)
+            grid.addWidget(meBtns[i], i + 2, 5)
+
+        grid.setRowStretch(0, 3)
+        grid.setRowStretch(1, 1)
+        grid.setRowStretch(self.noItems + 3, 2)
+
+        grid.setColumnStretch(0, 1)
+        grid.setColumnStretch(1, 2)
+        grid.setColumnStretch(2, 2)
+        grid.setColumnStretch(3, 2)
+        grid.setColumnStretch(4, 2)
+        grid.setColumnStretch(5, 1)
+        
+        self.setLayout(grid)
+
+    def foundAction(self, identifier):
+        pass
+            
+            
+            
+            
+    
         
 def main():
     pass

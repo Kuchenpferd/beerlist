@@ -29,6 +29,8 @@ class mainWindow(QtGui.QWidget):
         changeCardUI = genUIs.changeCard(self, self.widgetStack)
         payModeUI = genUIs.payMode(self, self.widgetStack)
         newUserInitialUI = genUIs.newUserInitial(self, self.widgetStack)
+        newUserCardUI = genUIs.newUserCard(self, self.widgetStack)
+        newUserOldUsersUI = genUIs.newUserOldUsers(self, self.widgetStack)
 
         # .. and then added to the widget stack
         self.widgetStack.addWidget(mainMenuUI)
@@ -41,13 +43,13 @@ class mainWindow(QtGui.QWidget):
         self.widgetStack.addWidget(changeCardUI)
         self.widgetStack.addWidget(payModeUI)
         self.widgetStack.addWidget(newUserInitialUI)
+        self.widgetStack.addWidget(newUserCardUI)
+        self.widgetStack.addWidget(newUserOldUsersUI)
 
         # The main UI is set as the current widget and everything is shown
         self.widgetStack.setCurrentWidget(mainMenuUI)
         self.lastWidgetId = mainMenuUI.id
         self.show()
-
-        
 
     # A function that changes the active UI to whichever UI matches idUI
     def changeUI(self, idUI):
