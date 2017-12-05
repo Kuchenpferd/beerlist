@@ -4,6 +4,7 @@
 import sys
 from PyQt4 import QtGui, QtCore
 import genUIs
+import newUserUIs
         
 # The class for the main window, which is the main container of everything
 class mainWindow(QtGui.QWidget):
@@ -28,9 +29,11 @@ class mainWindow(QtGui.QWidget):
         changePwdUI = genUIs.changePwd(self, self.widgetStack)
         changeCardUI = genUIs.changeCard(self, self.widgetStack)
         payModeUI = genUIs.payMode(self, self.widgetStack)
-        newUserInitialUI = genUIs.newUserInitial(self, self.widgetStack)
-        newUserCardUI = genUIs.newUserCard(self, self.widgetStack)
-        newUserOldUsersUI = genUIs.newUserOldUsers(self, self.widgetStack)
+        newUserInitialUI = newUserUIs.newUserInitial(self, self.widgetStack)
+        newUserCardUI = newUserUIs.newUserCard(self, self.widgetStack)
+        newUserOldUsersUI = newUserUIs.newUserOldUsers(self, self.widgetStack)
+        newUserBalanceUI = newUserUIs.newUserBalance(self, self.widgetStack)
+        newUserFinalUI = newUserUIs.newUserFinal(self, self.widgetStack)
 
         # .. and then added to the widget stack
         self.widgetStack.addWidget(mainMenuUI)
@@ -45,6 +48,8 @@ class mainWindow(QtGui.QWidget):
         self.widgetStack.addWidget(newUserInitialUI)
         self.widgetStack.addWidget(newUserCardUI)
         self.widgetStack.addWidget(newUserOldUsersUI)
+        self.widgetStack.addWidget(newUserBalanceUI)
+        self.widgetStack.addWidget(newUserFinalUI)
 
         # The main UI is set as the current widget and everything is shown
         self.widgetStack.setCurrentWidget(mainMenuUI)

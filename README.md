@@ -15,7 +15,7 @@ UIs to do:
  - New User (sduId, name, mail, pwd) (UI done, lacks functionality) (+Dialog)
  - New User (new card) (UI done, lacks functionality)
  - New User (Old Users) (UI done, lacks functionality) (+Dialog)
- - New User (balance)
- - New User (Final)
+ - New User (balance) (UI done, lacks functionality)
+ - New User (Final) (UI done, lacks functionality)
 
 Dependencies: PyQt4, pyautogui, pyperclip, pyqrcode, pypng
