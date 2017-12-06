@@ -18,4 +18,4 @@ UIs to do:
  - New User (balance) (UI done, lacks functionality)
  - New User (Final) (UI done, lacks functionality)
 
-Dependencies: PyQt4, pyautogui, pyperclip, pyqrcode, pypng
+Dependencies: PyQt5, pyautogui, pyperclip, pyqrcode, pypng

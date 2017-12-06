@@ -4,7 +4,7 @@
 import sys
 import pyperclip
 import pyautogui as pag
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 # Path to determine the resource folder (Should be changed, when imported
 workFolder = './../'
@@ -36,10 +36,10 @@ def emuKeyPress(Key):
     pag.hotkey('ctrl','v')
 
 # Superclass of the rest of the keyButtons with some standard settings
-class keyButton(QtGui.QPushButton):
+class keyButton(QtWidgets.QPushButton):
     def __init__(self, parent = None):
         super(keyButton, self).__init__(parent)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding))
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.clicked.connect(self.onClick)
         self = changeFont(self, 10)
@@ -113,7 +113,7 @@ class boardKeyButton(keyButton):
         emuKeyPress(Key)
 
 # The class that contains the input layout
-class inputFrame(QtGui.QFrame):
+class inputFrame(QtWidgets.QFrame):
 
     # Takes an input type and a parent in; disables drawing of the frame
     def __init__(self, inputType = '', parent = None):
@@ -131,7 +131,7 @@ class inputFrame(QtGui.QFrame):
     # Sets up the full keyboard layout, including geometry and size
     def setupFull(self):
         self.setGeometry(0,100,800,380)
-        grid = QtGui.QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
 
         # The keyboard key layout
         names =    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Alt',
@@ -192,7 +192,7 @@ class inputFrame(QtGui.QFrame):
     # Sets up the numpad layout including geometry and size
     def setupNumpad(self):
         self.setGeometry(200,100,400,380)
-        grid = QtGui.QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
 
         # The name layout for the keypad
         names =    ['1', '2', '3',
@@ -234,7 +234,7 @@ class inputFrame(QtGui.QFrame):
 
 
 # Dummy widget to test. Basically the same as ./minimal_keypad.py
-class Example(QtGui.QWidget):
+class Example(QtWidgets.QWidget):
     
     def __init__(self):
         super(Example, self).__init__()
@@ -247,7 +247,7 @@ class Example(QtGui.QWidget):
     def mainUI(self):
 
         # The LineEdit is manually placed outside the input frames
-        line_ed = QtGui.QLineEdit(self)
+        line_ed = QtWidgets.QLineEdit(self)
         line_ed.setFocus(True)
         line_ed.move(20,10)
         line_ed.resize(760,30)
@@ -264,7 +264,7 @@ class Example(QtGui.QWidget):
         
         
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     ex = Example()
     ex.show()
     sys.exit(app.exec_())

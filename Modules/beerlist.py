@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets
 import genUIs
 import newUserUIs
         
 # The class for the main window, which is the main container of everything
-class mainWindow(QtGui.QWidget):
+class mainWindow(QtWidgets.QWidget):
 
     def __init__(self, parent = None):
         super(mainWindow, self).__init__(parent)
@@ -16,7 +16,7 @@ class mainWindow(QtGui.QWidget):
         self.setGeometry(50,50,800,480)
 
         # An instance of stacked widget is set up
-        self.widgetStack = QtGui.QStackedWidget(self)
+        self.widgetStack = QtWidgets.QStackedWidget(self)
         self.widgetStack.setGeometry(0,0,800,480)
 
         # Each UI is set up
@@ -83,7 +83,7 @@ class mainWindow(QtGui.QWidget):
 # The usual main function, followed by the check that this file only can be run
 # if it is not loaded as a module
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     ex = mainWindow()
     sys.exit(app.exec_())
     

@@ -3,10 +3,12 @@
 
 import sys
 import inputWidgets
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
+
+changeFont = inputWidgets.changeFont
 
 # List of UI ids:
 uiIdList = ['None', 'mainMenu', 'multiMode', 'markDone', 'resetPwd',
@@ -14,34 +16,14 @@ uiIdList = ['None', 'mainMenu', 'multiMode', 'markDone', 'resetPwd',
             'newUserInitial', 'newUserCard', 'newUserOldUsers',
             'newUserBalance', 'newUserFinal']
 
-def changeFont(someLabel, size = 10, bold = False, align = 'l'):
-    if align == 'l':
-        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignLeft)
-    elif align == 'c':
-        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignHCenter)
-    elif align == 'r':
-        alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignRight)
-        
-    newFont = someLabel.font()
-    newFont.setPointSize(size)
-    newFont.setBold(bold)
-    someLabel.setFont(newFont)
-    
-    try:
-        someLabel.setAlignment(alignment)
-    except:
-        pass
-    
-    return someLabel
-
-class expandButton(QtGui.QPushButton):
+class expandButton(QtWidgets.QPushButton):
     def __init__(self, parent = None):
         super(expandButton, self).__init__(parent)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding))
         self = changeFont(self, 12, True)
 
 # A super class for the standard UI
-class standardUI(QtGui.QWidget):
+class standardUI(QtWidgets.QWidget):
     def __init__(self, mainWidget, parent = None, backButton = True, menuButton = True):
         super(standardUI, self).__init__(parent)
         self.setGeometry(0,0,800,480)
@@ -52,14 +34,14 @@ class standardUI(QtGui.QWidget):
         self.swipeActive = False
 
         if menuButton:
-            menuBtn = QtGui.QPushButton(self)
+            menuBtn = QtWidgets.QPushButton(self)
             menuBtn.resize(80, 80)
             menuBtn.move(710, 10)
             menuBtn.setIcon(QtGui.QIcon(resourceFolder + 'home.svg'))
             menuBtn.clicked.connect(self.mainMenuDialog)
 
         if backButton:
-            menuBtn = QtGui.QPushButton(self)
+            menuBtn = QtWidgets.QPushButton(self)
             menuBtn.resize(80, 80)
             menuBtn.move(10, 10)
             menuBtn.setIcon(QtGui.QIcon(resourceFolder + 'left-arrow.svg'))
@@ -88,45 +70,44 @@ class standardUI(QtGui.QWidget):
     def mainMenuDialog(self):
         
         # A message box is set up with a text and two buttons
-        msg = QtGui.QMessageBox(self.mainWidget)
+        msg = QtWidgets.QMessageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
         msg.setGeometry(225,210,60,30)
         msg.setText('Do you want to return to the main menu?')
-        msg.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         # msg.exec_() will return the value of the pressed button
         pressedButton = msg.exec_()
 
         # A check to see if the 'Yes' button was pressed, and the UI is then changed
-        if pressedButton == QtGui.QMessageBox.Yes:
+        if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('mainMenu')
 
         # Another check to so if the 'No' button was pressed
-        elif pressedButton == QtGui.QMessageBox.No:
+        elif pressedButton == QtWidgets.QMessageBox.No:
             self.update()
         
     def backDialog(self):
         
         # A message box is set up with a text and two buttons
-        msg = QtGui.QMessageBox(self.mainWidget)
+        msg = QtWidgets.QMessageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
         msg.setGeometry(220,210,60,30)
         msg.setText('Do you want to return to previous screen?')
-        msg.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         # msg.exec_() will return the value of the pressed button
         pressedButton = msg.exec_()
 
         # A check to see if the 'Yes' button was pressed, and the UI is then changed
-        if pressedButton == QtGui.QMessageBox.Yes:
+        if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('back')
 
         # Another check to so if the 'No' button was pressed
-        elif pressedButton == QtGui.QMessageBox.No:
+        elif pressedButton == QtWidgets.QMessageBox.No:
             self.update()
     
     def swipeAction(self):
-        print(self.cardSequence)
         pass
     
     # A function that updates the UI, will be empty for static UIs, and content will be
@@ -157,15 +138,15 @@ class mainMenu(standardUI):
         resetBtn.setText('Reset Password')
         resetBtn.clicked.connect(lambda: self.mainWidget.changeUI('resetPwd'))
 
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText('Welcome to Æters Beerlist system v. 2.0')
         titleLabel = changeFont(titleLabel, 14, True, 'c')
 
-        contentLabel = QtGui.QLabel(self)
+        contentLabel = QtWidgets.QLabel(self)
         contentLabel.setText('To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"!\nTo see your balance, grab beers without your card,\nchange your password or card, please login!')
         contentLabel = changeFont(contentLabel)
 
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.addWidget(titleLabel, 0, 1, 1, 2)
         grid.addWidget(contentLabel, 1, 1, 1, 2)
         grid.addWidget(multiBtn, 2, 0, 1, 2)
@@ -174,8 +155,6 @@ class mainMenu(standardUI):
         grid.addWidget(resetBtn, 3, 2, 1, 2)
 
         self.setLayout(grid)
-
-
 
 class multiMode(standardUI):
 
@@ -187,24 +166,24 @@ class multiMode(standardUI):
         numPad = inputWidgets.inputFrame('numpad', self)
         numPad.enterBtn.clicked.connect(self.enterAction)
 
-        contentFrame = QtGui.QFrame(self)
+        contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
         self.titleString = ['Please enter the wanted amount and swipe your card:',
                             'Please enter the wanted amount and press enter:']
         
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
 
-        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = QtWidgets.QLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         inputEdit.setMaxLength(2)
         self.inputEdit = inputEdit
         
-        vbox = QtGui.QVBoxLayout(contentFrame)
+        vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
         vbox.addWidget(inputEdit)
         
@@ -224,7 +203,7 @@ class markDone(standardUI):
 
         self.contentString = 'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!'
         
-        contentLabel = QtGui.QLabel(self)
+        contentLabel = QtWidgets.QLabel(self)
         contentLabel = changeFont(contentLabel, 12, True, 'c')
         contentLabel.setText(self.contentString)
         self.contentLabel = contentLabel
@@ -238,7 +217,7 @@ class markDone(standardUI):
         payBtn.clicked.connect(lambda: self.mainWidget.changeUI('payMode'))
         self.payBtn = payBtn
 
-        grid = QtGui.QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
         grid.addWidget(contentLabel, 1, 1, 1, 2)
         grid.addWidget(payBtn, 2, 1)
         grid.addWidget(menuBtn, 2, 2)
@@ -260,21 +239,21 @@ class resetPwd(standardUI):
         keyBoard = inputWidgets.inputFrame('full', self)
         keyBoard.enterBtn.clicked.connect(self.enterAction)
 
-        contentFrame = QtGui.QFrame(self)
+        contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
         titleString = 'Please enter your SDU-ID to reset your password:'
 
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(titleString)
         titleLabel = changeFont(titleLabel, 12, True, 'c')
 
-        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = QtWidgets.QLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
         
-        vbox = QtGui.QVBoxLayout(contentFrame)
+        vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
         vbox.addWidget(inputEdit)
         
@@ -296,23 +275,23 @@ class login(standardUI):
         keyBoard = inputWidgets.inputFrame('full', self)
         keyBoard.enterBtn.clicked.connect(self.enterAction)
 
-        contentFrame = QtGui.QFrame(self)
+        contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
         self.titleString = ['Please enter your SDU-ID or swipe your card to login:',
                             'Please enter your password:']
 
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
 
-        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = QtWidgets.QLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
         
-        vbox = QtGui.QVBoxLayout(contentFrame)
+        vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
         vbox.addWidget(inputEdit)
         
@@ -323,14 +302,14 @@ class login(standardUI):
         self.titleLabel.setText(self.titleString[0])
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
-        self.inputEdit.setEchoMode(QtGui.QLineEdit.Normal)
+        self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
 
     def enterAction(self):
         if self.input == 0:
             self.titleLabel.setText(self.titleString[1])
             self.input = 1
             self.inputEdit.setFocus(True)
-            self.inputEdit.setEchoMode(QtGui.QLineEdit.Password)
+            self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Password)
             self.inputEdit.setText('')
         elif self.input == 1:
             self.mainWidget.changeUI('loggedIn')
@@ -342,7 +321,7 @@ class loggedIn(standardUI):
 
         self.titleString = 'Welcome {name}!\nYour current balance is {balance} kr!\nA negative balance is a good thing!'
         
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString)
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
@@ -367,7 +346,7 @@ class loggedIn(standardUI):
         chnCardBtn.setText('Change Card')
         chnCardBtn.clicked.connect(lambda: self.mainWidget.changeUI('changeCard'))
 
-        grid = QtGui.QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
         grid.setRowStretch(0,1.1)
         grid.setRowStretch(1,1)
         grid.setRowStretch(2,1)
@@ -390,23 +369,23 @@ class changePwd(standardUI):
         keyBoard = inputWidgets.inputFrame('full', self)
         keyBoard.enterBtn.clicked.connect(self.enterAction)
 
-        contentFrame = QtGui.QFrame(self)
+        contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
         self.titleString = ['Please your new password:',
                             'Please enter it again:']
         
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
 
-        inputEdit = QtGui.QLineEdit(self)
+        inputEdit = QtWidgets.QLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
-        inputEdit.setEchoMode(QtGui.QLineEdit.Password)
+        inputEdit.setEchoMode(QtWidgets.QLineEdit.Password)
         self.inputEdit = inputEdit
         
-        vbox = QtGui.QVBoxLayout(contentFrame)
+        vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
         vbox.addWidget(inputEdit)
         
@@ -438,12 +417,12 @@ class changeCard(standardUI):
         self.titleString = ['Hi {name}!\nTo register a new card please swipe it now!',
                             'Please swipe again to finally change your card!']
         
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
 
-        vbox = QtGui.QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addStretch(1)
         vbox.addWidget(titleLabel)
         vbox.addStretch(1)
@@ -470,7 +449,7 @@ class payMode(standardUI):
 
         self.titleString = 'Scan this to pay your balance {operator} {extraAmount} kr,\nthat is {totalAmount} kr'
         
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString)
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         titleLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
@@ -478,7 +457,7 @@ class payMode(standardUI):
 
         self.qrPixmap = QtGui.QPixmap(resourceFolder + 'qrcode.png').scaledToHeight(300)
         
-        qrLabel = QtGui.QLabel(self)
+        qrLabel = QtWidgets.QLabel(self)
         qrLabel.setPixmap(self.qrPixmap)
         qrLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
 
@@ -494,7 +473,7 @@ class payMode(standardUI):
         plusBtn.setText('+ 50')
         plusBtn.clicked.connect(lambda: self.updateQr('plus'))
 
-        grid = QtGui.QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
         grid.setRowStretch(1, 1)
         grid.setRowStretch(2, 3)
         grid.setRowStretch(3, 1)
