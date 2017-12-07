@@ -3,7 +3,7 @@
 
 import sys
 import inputWidgets
-from genUIs import expandButton, standardUI
+from genUIs import expandButton, swipeLineEdit, standardUI
 from PyQt5 import QtWidgets, QtCore
 
 workFolder = './../'
@@ -47,7 +47,7 @@ class newUserInitial(standardUI):
         empBtn.clicked.connect(self.employeeMode)
         self.empBtn = empBtn
 
-        inputEdit = QtWidgets.QLineEdit(self)
+        inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
         
@@ -284,7 +284,7 @@ class newUserBalance(standardUI):
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
 
-        inputEdit = QtWidgets.QLineEdit(self)
+        inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         inputEdit.setMaxLength(5)
         self.inputEdit = inputEdit

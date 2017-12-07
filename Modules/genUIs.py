@@ -3,6 +3,7 @@
 
 import sys
 import inputWidgets
+import userFuncs, refFuncs, statFuncs, mailFuncs
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 workFolder = './../'
@@ -22,6 +23,16 @@ class expandButton(QtWidgets.QPushButton):
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding))
         self = changeFont(self, 12, True)
 
+class swipeLineEdit(QtWidgets.QLineEdit):
+    def __init__(self, parent = None):
+        super(swipeLineEdit, self).__init__(parent)
+        self.parent = parent
+
+    def keyPressEvent(self, event):
+        super(swipeLineEdit, self).keyPressEvent(event)
+        self.parent.keyPressEvent(event)
+    
+
 # A super class for the standard UI
 class standardUI(QtWidgets.QWidget):
     def __init__(self, mainWidget, parent = None, backButton = True, menuButton = True):
@@ -30,7 +41,7 @@ class standardUI(QtWidgets.QWidget):
         self.mainWidget = mainWidget
         self.id = 'None'
 
-        self.cardSequence = ''
+        self.cardSequence = ' '
         self.swipeActive = False
 
         if menuButton:
@@ -72,7 +83,7 @@ class standardUI(QtWidgets.QWidget):
         # A message box is set up with a text and two buttons
         msg = QtWidgets.QMessageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.setGeometry(225,210,60,30)
+        msg.move(220,180)
         msg.setText('Do you want to return to the main menu?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -92,7 +103,7 @@ class standardUI(QtWidgets.QWidget):
         # A message box is set up with a text and two buttons
         msg = QtWidgets.QMessageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.setGeometry(220,210,60,30)
+        msg.move(220,180)
         msg.setText('Do you want to return to previous screen?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -106,6 +117,29 @@ class standardUI(QtWidgets.QWidget):
         # Another check to so if the 'No' button was pressed
         elif pressedButton == QtWidgets.QMessageBox.No:
             self.update()
+
+    def newUserDialog(self, update = True):
+        
+        # A message box is set up with a text and two buttons
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True, 'c')
+        msg.move(260,150)
+        msg.setText('Unknown card swiped!\n\nDo you wish to create a new user?')
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+        # msg.exec_() will return the value of the pressed button
+        pressedButton = msg.exec_()
+
+        # A check to see if the 'Yes' button was pressed, and the UI is then changed
+        if pressedButton == QtWidgets.QMessageBox.Yes:
+            self.mainWidget.changeUI('newUserInitial')
+
+        # Another check to so if the 'No' button was pressed
+        elif pressedButton == QtWidgets.QMessageBox.No:
+            if update:
+                self.update()
+            else:
+                pass
     
     def swipeAction(self):
         pass
@@ -114,6 +148,8 @@ class standardUI(QtWidgets.QWidget):
     # specified as each UI is set up
     def update(self):
         pass
+
+
 
 class mainMenu(standardUI):
 
@@ -156,6 +192,25 @@ class mainMenu(standardUI):
 
         self.setLayout(grid)
 
+    def update(self):
+        self.mainWidget.currentUser = refFuncs.refUserInstance()
+        self.mainWidget.currentUserList = []
+        self.mainWidget.currentRefUserList = []
+        self.mainWidget.transfer = []
+
+    def swipeAction(self):
+        if self.cardSequence[0] == 'æ':
+            swipedUser = userFuncs.findUserCard(self.cardSequence)
+            if swipedUser != None:
+                swipedUser.addSome()
+                swipedUser.saveUser()
+                self.mainWidget.currentUser = swipedUser
+                self.mainWidget.changeUI('markDone')
+            else:
+                self.mainWidget.currentUser.cardId = self.cardSequence
+                self.newUserDialog()
+
+    
 class multiMode(standardUI):
 
     def __init__(self, mainWidget, parent = None):
@@ -165,6 +220,7 @@ class multiMode(standardUI):
 
         numPad = inputWidgets.inputFrame('numpad', self)
         numPad.enterBtn.clicked.connect(self.enterAction)
+        self.enterBtn = numPad.enterBtn
 
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
@@ -178,7 +234,7 @@ class multiMode(standardUI):
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
 
-        inputEdit = QtWidgets.QLineEdit(self)
+        inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         inputEdit.setMaxLength(2)
         self.inputEdit = inputEdit
@@ -189,12 +245,60 @@ class multiMode(standardUI):
         
         contentFrame.setLayout(vbox)
 
+    def swipeAction(self):
+        if self.cardSequence[0] == 'æ':
+            swipedUser = userFuncs.findUserCard(self.cardSequence)
+            if swipedUser != None:
+                self.mainWidget.currentUser = swipedUser
+                self.enterAction()
+            else:
+                self.mainWidget.currentUser.cardId = self.cardSequence
+                self.newUserDialog(False)
+    
     def enterAction(self):
+        text = self.inputEdit.text()
+        while True:
+            try:
+                units = int(text)
+                break
+            except:
+                text = text[:-1]
+                print(text)
+                if text == '':
+                    self.emptyLineDialog()
+                    self.update()
+                    return
+                    
+        self.mainWidget.currentUser.addSome(units)
+        self.mainWidget.currentUser.saveUser()
+
+        self.mainWidget.transfer.append(units)
         self.mainWidget.changeUI('markDone')
 
     def update(self):
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
+
+        if self.mainWidget.lastWidgetId == 'mainMenu':
+            self.titleLabel.setText(self.titleString[0])
+            self.swipeActive = True
+            self.enterBtn.setEnabled(False)
+        elif self.mainWidget.lastWidgetId == 'loggedIn':
+            self.titleLabel.setText(self.titleString[1])
+            self.swipeActive = False
+            self.enterBtn.setEnabled(True)
+
+    def emptyLineDialog(self):
+
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        msg.setText('The input line seems empty!')
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        
 
 class markDone(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -249,7 +353,7 @@ class resetPwd(standardUI):
         titleLabel.setText(titleString)
         titleLabel = changeFont(titleLabel, 12, True, 'c')
 
-        inputEdit = QtWidgets.QLineEdit(self)
+        inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
         
@@ -287,7 +391,7 @@ class login(standardUI):
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         self.titleLabel = titleLabel
 
-        inputEdit = QtWidgets.QLineEdit(self)
+        inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
         
@@ -380,7 +484,7 @@ class changePwd(standardUI):
         titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
 
-        inputEdit = QtWidgets.QLineEdit(self)
+        inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         inputEdit.setEchoMode(QtWidgets.QLineEdit.Password)
         self.inputEdit = inputEdit

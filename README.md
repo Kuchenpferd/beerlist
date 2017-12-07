@@ -1,10 +1,10 @@
 # beerlist_gui
-A GUI for the previous beerlist system.
+A GUI for the previous beerlist system using Python 3.6
 
 UIs to do:
  - Standard superclass (+Dialogx2) - Done!
- - Main (Static) - (UI done, lacks functionality)
- - Multimode (Needs input) (UI done, lacks functionality) (+Dialog) 
+ - Main - Done!
+ - Multimode - Done! (Might need a revisit, we'll see) 
  - Marked (Needs input) (UI done, lacks functionality)
  - Reset Password (Static) (UI done, lacks functionality) (+InfoDialog)
  - Login (Static) (UI done, lacks functionality)
@@ -18,4 +18,6 @@ UIs to do:
  - New User (balance) (UI done, lacks functionality)
  - New User (Final) (UI done, lacks functionality)
 
-Dependencies: PyQt5, pyautogui, pyperclip, pyqrcode, pypng
+Dependencies (Everything can now be installed using PIP3): 
+ - PyQt5, pyautogui, pyperclip, pyqrcode, pypng
+ - All further dependencies should already be in a standard Python build

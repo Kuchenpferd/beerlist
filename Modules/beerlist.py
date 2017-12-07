@@ -5,6 +5,7 @@ import sys
 from PyQt5 import QtWidgets
 import genUIs
 import newUserUIs
+import refFuncs
         
 # The class for the main window, which is the main container of everything
 class mainWindow(QtWidgets.QWidget):
@@ -14,6 +15,11 @@ class mainWindow(QtWidgets.QWidget):
 
         # The geometry is set up
         self.setGeometry(50,50,800,480)
+
+        self.currentUser = refFuncs.refUserInstance()
+        self.currentUserList = []
+        self.currentRefUserList = []
+        self.transfer = {}
 
         # An instance of stacked widget is set up
         self.widgetStack = QtWidgets.QStackedWidget(self)

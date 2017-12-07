@@ -38,7 +38,7 @@ class userInstance(object):
         self.lastPay = lastPay
         self.lastActive = lastActive
         self.number = number
-
+        
     # Internal function to add 'units' marks to the the user balance
     def addSome(self, units = 1):
         self.balance += price*units
@@ -59,12 +59,33 @@ class userInstance(object):
         # The last pay property is updated
         self.lastPay = date.today()
 
+    # Internal function that writes a file for the current object
+    def saveUser(self):
+        # If a user is newly created, the user number will be '0', which is corrected
+        # to the appropriate number
+        if self.number == 0:
+            self.number = findNewUserNumber()
+
+        # The path is then defined from the user number
+        path = f'{dataFolder}Users/user_{self.number:04d}'
+
+        # The user file is opened and all the information of the user is written to the file
+        with open(path, 'w', encoding = 'utf-8') as userFile:
+            userFile.write(self.name + '\n')
+            userFile.write(self.mail + '\n')
+            userFile.write(self.sduId + '\n')    
+            userFile.write(self.pwd + '\n')
+            userFile.write(str(self.balance) + '\n')
+            userFile.write(self.cardId + '\n')
+            userFile.write(str(self.lastPay) + '\n')
+            userFile.write(str(self.lastActive) + '\n')
+
 # A function that loads a single user from 'path'
 def loadUser(path):
     # The user file at 'path' is opened and the content is split in lines,
     # which are then sorted into their respective variables.
     with open(path, 'r', encoding = 'utf-8') as userFile:
-        userContent = userFile.read().splitline()
+        userContent = userFile.read().splitlines()
         name = userContent[0]
         mail = userContent[1]
         sduId = userContent[2]
@@ -86,7 +107,7 @@ def loadUser(path):
                           int(lastActiveLine[2]))
 
         # At last everything is put into a user object and returned
-        tmpUser = userInstance(name, mail, sdu_id, pwd, balance, cardId, number,
+        tmpUser = userInstance(name, mail, sduId, pwd, balance, cardId, number,
                                lastPay, lastActive)
     return tmpUser
 
@@ -115,7 +136,7 @@ def findNewUserNumber():
     newUserNumber = 1
 
     # A list of filenames in the user directory is loaded
-    userFileList = os.listdir(dataFolder + 'Users/')
+    userFileList = os.listdir(f'{dataFolder}Users/')
     
     # Each time the loop runs it sets a True flag, which is turned False if any user file
     # already has the current user number.
@@ -133,33 +154,11 @@ def findNewUserNumber():
         newUserNumber += 1
     return newUserNumber
 
-# A function that writes a file for the specified 'user'
-def saveUser(user):
-
-    # If a user is newly created, the user number will be '0', which is corrected
-    # to the appropriate number
-    if user.number == 0:
-        user.number = findNewUserNumber()
-
-    # The path is then defined from the user number
-    path = dataFolder + 'Users/user_{number:04d}'.format(number = user.number)
-
-    # The user file is opened and all the information of the user is written to the file
-    with open(path, 'w', encoding = 'utf-8') as userFile:
-        userFile.write(user.name + '\n')
-        userFile.write(user.mail + '\n')
-        userFile.write(user.sduId + '\n')    
-        userFile.write(user.pwd + '\n')
-        userFile.write(str(user.balance) + '\n')
-        userFile.write(user.cardId + '\n')
-        userFile.write(str(user.lastPay) + '\n')
-        userFile.write(str(user.lastActive) + '\n')
-
 # A function that writes files for all the users contained in users
 # (Will probably not be used)
 def saveUsers(users):
     for user in users:
-        saveUser(user)
+        user.saveUser()
 
 # A function that takes a string and looks through all users in 'users'
 # to see if any of their cardIds match the string.

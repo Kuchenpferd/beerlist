@@ -4,7 +4,6 @@
 import os
 import smtplib
 import pyqrcode
-from userFuncs import saveUser
 from hashlib import sha256
 from time import sleep
 from email.mime.multipart import MIMEMultipart
@@ -188,7 +187,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
 
             # If the mail is suceesfully sent, the password of the user is updated and saved and True is returned
             user.pwd = newPwdHash
-            saveUser(user)
+            user.saveUser()
             mailServer.quit()
             return True
         except:

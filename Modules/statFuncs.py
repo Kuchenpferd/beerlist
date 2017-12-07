@@ -63,13 +63,13 @@ def loadStats(yearAndMonth, stats = []):
 
                 # An instance of stat is then created and appended to the stats list
                 tmpStat = statInstance(units, newUsers, yearAndMonth, dayOfMonth, hour)
-                stats.append(tmpStats)
+                stats.append(tmpStat)
 
     except FileNotFoundError:
         # In case the file does not already exist, an empty instance of stat is created
         # and added as the single element of of 'sts'
         tmpStat = statInstance()
-        stats.append(tmpStats)
+        stats.append(tmpStat)
         
     # At last the list is returned
     return stats
@@ -93,7 +93,7 @@ def saveStats(stats):
 def updateStats(statType, units):
 
     # First of the current yearAndMonth, dayOfMonth and hour is determined
-    yearAndMonth = date.today().strftime('%y-%d')
+    yearAndMonth = date.today().strftime('%y-%m')
     dayOfMonth = date.today().day
     hour = datetime.now().hour
     
