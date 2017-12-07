@@ -16,12 +16,13 @@ class refUserInstance(object):
 
     # The reference user does not have nearly as many properties as the ordinary user,
     # so the rest of the necessaries are set to None.
-    def __init__(self, name = '', mail = '', balance = 0, pwd = ''):
+    def __init__(self, name = '', mail = '', balance = 0, pwd = '', cardId = ''):
         self.name = name
         self.mail = mail
         self.sduId = mail.split('@')[0]
         self.balance = balance
         self.pwd = ''
+        self.cardId = cardId
 
 # A function that loads all reference users and returns them in a list 'refUsers'
 def loadRefUsers(refUsers = []):

@@ -19,7 +19,7 @@ price = 5
 class userInstance(object):
 
     # The user is set up with all of the properties
-    def __init__(self, name, mail, sduId, pwd, balance = 0, cardId = 0, number = 0,
+    def __init__(self, name, mail, sduId, pwd, balance = 0, cardId = '', number = 0,
                  lastPay = 1, lastActive = 1):
 
         # As the default input for unspecified last payment date is 1,
@@ -164,7 +164,9 @@ def saveUsers(users):
 # A function that takes a string and looks through all users in 'users'
 # to see if any of their cardIds match the string.
 # It then returns that user; returns None if no match is found.
-def findUserCard(cardString, users):
+def findUserCard(cardString, users = []):
+    if users == []:
+        users = loadUsers()
     for user in users:
         if cardString == user.cardId:
             return user
@@ -172,7 +174,9 @@ def findUserCard(cardString, users):
 
 # A function very similar to the previous one, only it cheks if the input string
 # matches any sduId or mail of the users.
-def findUserNoCard(inputString, users):
+def findUserNoCard(inputString, users = []):
+    if users == []:
+        users = loadUsers()
     for user in users:
         if inputString == user.sduId:
             return user
