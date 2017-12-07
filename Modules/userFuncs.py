@@ -3,13 +3,13 @@
 
 import os
 import csv
-from datetime import date, datetime
+from statFuncs import updateStats
+from datetime import date
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
 workFolder = './../'
 
 # Additional destinations
-resourceFolder = workFolder + 'Resources/'
 dataFolder = workFolder + 'Data/'
 
 # The price of setting a mark
@@ -63,7 +63,7 @@ class userInstance(object):
 def loadUser(path):
     # The user file at 'path' is opened and the content is split in lines,
     # which are then sorted into their respective variables.
-    with open(path, 'r') as userFile:
+    with open(path, 'r', encoding = 'utf-8') as userFile:
         userContent = userFile.read().splitline()
         name = userContent[0]
         mail = userContent[1]
@@ -76,10 +76,14 @@ def loadUser(path):
         # As both lines containing dates need to be specifically formatted, they are
         # treated specially.
         lastPayLine = userContent[6].split('-')
-        lastPay = date(int(lastPayLine[0]), int(lastPayLine[1]), int(lastPayLine[2]))
+        lastPay = date(int(lastPayLine[0]),
+                       int(lastPayLine[1]),
+                       int(lastPayLine[2]))
+        
         lastActiveLine = userContent[7].split('-')
         lastActive = date(int(lastActiveLine[0]),
-                          int(lastActiveLine[1]), int(lastActiveLine[2]))
+                          int(lastActiveLine[1]),
+                          int(lastActiveLine[2]))
 
         # At last everything is put into a user object and returned
         tmpUser = userInstance(name, mail, sdu_id, pwd, balance, cardId, number,
@@ -141,7 +145,7 @@ def saveUser(user):
     path = dataFolder + 'Users/user_{number:04d}'.format(number = user.number)
 
     # The user file is opened and all the information of the user is written to the file
-    with open(path, 'w') as userFile:
+    with open(path, 'w', encoding = 'utf-8') as userFile:
         userFile.write(user.name + '\n')
         userFile.write(user.mail + '\n')
         userFile.write(user.sduId + '\n')    
@@ -176,185 +180,9 @@ def findUserNoCard(inputString, users):
             return user
     return None
 
-# A function to look through the file containing the names and mails of all students
-# and return the name if the input string matches the mail of sduId of the student
-def findName(idString):
-
-    # First the path to the file is set and then opened and split into rows with a csv reader
-    path = dataFolder + 'allStudents.csv'
-    with open(path, 'r') as studentFile:
-        rowReader = csv.reader(studentFile, dialect = 'excel')
-
-        # Each row is split into relevant variables
-        # and then the sduId and mail are then checked
-        # against the input string. The name is returned if
-        # a match is found, and None is returned if no match is found
-        for row in rowReader:
-            name = row[0]
-            mail = row[1]
-            sduId = mail.split('@')[0]
-            if idString == sduId:
-                return name
-            elif idString == mail:
-                return name
-    return None    
-
-# The class of the reference user instance, now a subclass of the user instance.
-# Reference users are the old users, that has not yet been created in the system
-class refUserInstance(userInstance):
-
-    # The reference user does not have nearly as many properties as the ordinary user,
-    # so the rest of the necessaries are set to None.
-    def __init__(self, name, mail, balance):
-        super(refUserInstance, self).__init__(name, mail, None, None, balance)
-        self.sduId = mail.split('@')[0]
-
-# A function that loads all reference users and returns them in a list 'refUsers'
-def loadRefUsers(refUsers = []):
-    
-    # First the path is determined
-    path = dataFolder + 'refUsers.csv'
-
-    # The '.csv' file is opened using a csv reader
-    with open(path, 'r') as refUserFile:
-        rowReader = csv.reader(refUserFile, dialect = 'excel')
-
-        # As there is one reference user per row, each row is
-        # separated into the relevant variables
-        for row in rowReader:
-            name = row[0]
-            mail = row[1]
-            balance = int(row[2])
-
-            # As the only reference users that are relevant to check for
-            # are the ones with a non-zero balance, we do the following check
-            # before we create a refuserInstance and append that user to the list
-            if balance != 0:
-                tmpRefUser = refUserInstance(name, mail, balance)
-                refUsers.append(tmpRefUser)
-
-    # At last the list of refUsers is returned
-    return refUsers
-
-# A function that takes a list of reference users and writes it to the relevant file
-def saveRefUsers(refUsers):
-    path = dataFolder + 'refUsers.csv'
-    with open(path, 'w', newline = '') as refUserFile:
-        rowWriter = csv.writer(refUserFile, dialect = 'excel')
-
-        # Each user get their own row, and the relevant properties are written
-        for refUser in refUsers:
-            rowWriter.writerow([refUser.name, refUser.mail, str(refUser.balance)])
-
-# The class that contains an hour-specific statistic
-class statInstance(object):
-
-    # The properties of the stat instance is initialized, with the capability of creating
-    # a totally empty stat with no input arguments
-    def __init__(self, units = 0, newUsers = 0, yearAndMonth = 1, dayOfMonth = 1, hour = 1):
-
-        # Once again, we know that we need to determine the "standard" properties if
-        # yearAndMonth = 1
-        if yearAndMonth == 1:
-            yearAndMonth = date.today().strftime('%y-%m')
-            dayOfMonth = date.today().day
-            hour = datetime.now().hour
-
-        # All arguments are then turned into properties of the statistic
-        self.units = int(units)
-        self.newUsers = int(newUsers)
-        self.yearAndMonth = yearAndMonth
-        self.dayOfMonth = int(dayOfMonth)
-        self.hour = int(hour)
-
-    # Internal function, that adds 'units' to the relevant 'statType' property
-    def addSome(self, statType, units = 1):
-        if statType == 'Mark':
-            self.units += units
-        elif statType == 'User':
-            self.newUsers += units
-
-# A function that load the statistics file specific to the 'yearAndMonth' specified
-# (stst files are named by yearAndMonth) and returns a list of stats
-def loadStats(yearAndMonth, stats = []):
-
-    # First the path is set to the specific file
-    path = dataFolder + 'Statistics/' + yearAndMonth
-
-    # As the specific stat file might not exist, a try/catch is set up with a FileNotFound catch
-    try:
-        # Assuming the file exists, it is opened and it's content split into lines
-        with open(path, 'r') as statFile:
-            content = statFile.read().splitlines()
-
-            # As each line contains one instance of a stat, the content of each is
-            # put into the relvant variables
-            for line in content:
-                lineContent = line.split(' ')
-                units = lineContent[1]
-                newUsers = lineContent[2]
-                dayOfMonth = lineContent[0]
-                hour = lineContent[3]
-
-                # An instance of stat is then created and appended to the stats list
-                tmpStat = statInstance(units, newUsers, yearAndMonth, dayOfMonth, hour)
-                stats.append(tmpStats)
-
-    except FileNotFoundError:
-        # In case the file does not already exist, an empty instance of stat is created
-        # and added as the single element of of 'sts'
-        tmpStat = statInstance()
-        stats.append(tmpStats)
-        
-    # At last the list is returned
-    return stats
-
-# A function that writes the elements of the list 'stats'
-def saveStats(stats):
-
-    # As all stats in a list can only have the same yearAndMonth
-    # (per definition; see loadStats) it is fetched from the fist element
-    # and the file path is set.
-    yearAndMonth = stats[0].yearAndMonth
-    path = dataFolder + 'Statistics/' + yearAndMonth
-
-    # The stat file is opened and each stat is written  on its own line
-    with open(path, 'w') as statFile:
-        for stat in stats:
-            line = '{} {} {} {}\n'.format(stat.dayOfMonth, stat.units, stat.newUsers, stat.hour)
-            statFile.write(line)
-
-# A function that updates the overall stats given the statType and units
-def updateStats(statType, units):
-
-    # First of the current yearAndMonth, dayOfMonth and hour is determined
-    yearAndMonth = date.today().strftime('%y-%d')
-    dayOfMonth = date.today().day
-    hour = datetime.now().hour
-    
-    # Then the relevant stats list is created by loading the stats
-    stats = loadStats(yearAndMonth)
-
-    # A True flag is set up to determine if any stat matches both the current dayOfMonth and hour;
-    # If there is a match, addSome is called for the specific stat, and the flag is set to False
-    # and the llop is broken (as ony one stat can match)
-    flag = True
-    for stat in stats:
-        if stat.dayOfMonth == dayOfMonth and stat.hour == hour:
-            stat.addSome(statType, units)
-            flag = False
-            break
-
-    # If the flag is still True after the loop is done, no stat matched
-    # the current dayOfMonth and hour and thus a new instance should be created,
-    # and have addSome run before being appended to the 'stats' list
-    if flag:
-        tmpStat = statInstance()
-        tmpStat.addSome(statType, units)
-        stats.append(tmpStat)
-
-    # The new 'stats' list is then saved
-    saveStats(stats)
+def refToMainUser(refUser):
+    mainUser = userInstance(refUser.name, refUser.mail, refUser.sduId, refUser.pwd, refUser.balance)
+    return mainUser
 
 # The usual header, which in this case just passes, as this script is not ment to be run at all.
 def main():
