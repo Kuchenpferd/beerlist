@@ -2,5 +2,7 @@
 /Data/mailCredentials.t
 /Data/newPwdMail.t
 /Data/debtMail.t
+/Data/Users/*
+/Data/Statistics/*
 /Modules/__pycache__
 /Modules/__pycache__/*
