@@ -5,8 +5,8 @@ UIs to do:
  - Standard superclass (+Dialogx2) - Done!
  - Main - Done!
  - Multimode - Done! (Might need a revisit, we'll see) 
- - Marked (Needs input) (UI done, lacks functionality)
- - Reset Password (Static) (UI done, lacks functionality) (+InfoDialog)
+ - MarkDone - Done!
+ - Reset Password - Done!
  - Login (Static) (UI done, lacks functionality)
  - Logged in (Needs input) (UI done, lacks functionality)(+Dialogx2) 
  - Change Password (Needs input) (UI done, lacks functionality)
@@ -17,6 +17,9 @@ UIs to do:
  - New User (Old Users) (UI done, lacks functionality) (+Dialog)
  - New User (balance) (UI done, lacks functionality)
  - New User (Final) (UI done, lacks functionality)
+ 
+Other things to do:
+ - Redo the mailFuncs.sendMail function - it doesn't work right
 
 Dependencies (Everything can now be installed using PIP3): 
  - PyQt5, pyautogui, pyperclip, pyqrcode, pypng

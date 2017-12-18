@@ -207,6 +207,7 @@ class mainMenu(standardUI):
             if swipedUser != None:
                 swipedUser.addSome()
                 swipedUser.saveUser()
+                self.mainWidget.transfer.append(1)
                 self.mainWidget.currentUser = swipedUser
                 self.mainWidget.changeUI('markDone')
             else:
@@ -333,23 +334,36 @@ class markDone(standardUI):
 
         self.setLayout(grid)
 
+    def update(self):
+        units = self.mainWidget.transfer[0]
+        amount = units*userFuncs.price
+        self.mainWidget.transfer = []
+        
+        name = self.mainWidget.currentUser.name
+        balance = self.mainWidget.currentUser.balance
+        
+        self.contentLabel.setText(f'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!')
+
+        
+
 class resetPwd(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(resetPwd, self).__init__(mainWidget, parent)
         self.id = 'resetPwd'
+        self.swipeActive = True
 
         keyBoard = inputWidgets.inputFrame('full', self)
-        keyBoard.enterBtn.clicked.connect(self.enterAction)
+        keyBoard.enterBtn.clicked.connect(lambda: self.enterAction())
 
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
-        titleString = 'Please enter your SDU-ID to reset your password:'
+        titleString = 'Please enter your SDU-ID or swipe your card to reset\nyour password:'
 
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(titleString)
-        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        titleLabel = changeFont(titleLabel, 11.5, True, 'c')
 
         inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
@@ -362,11 +376,74 @@ class resetPwd(standardUI):
         contentFrame.setLayout(vbox)
 
     def update(self):
+        self.cardSequence = ' '
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
 
-    def enterAction(self):
-        pass
+    def swipeAction(self):
+        if self.cardSequence[0] == 'æ':
+            swipedUser = userFuncs.findUserCard(self.cardSequence)
+            if swipedUser != None:
+                self.enterAction(swipedUser)
+            else:
+                self.mainWidget.currentUser.cardId = self.cardSequence
+                self.newUserDialog(False)
+                self.update()
+
+    def enterAction(self, user = None):
+        if user == None:
+            user = userFuncs.findUserNoCard(self.inputEdit.text())
+            if user == None:
+                self.wrongDialog()
+                self.update()
+                return
+        self.newPwdDialog(user)
+
+    def newPwdDialog(self, user):
+        
+        # A message box is set up with a text and two buttons
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True, 'c')
+        msg.move(260,150)
+        msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to reset your password?""")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+        # msg.exec_() will return the value of the pressed button
+        pressedButton = msg.exec_()
+
+        # A check to see if the 'Yes' button was pressed, and the UI is then changed
+        if pressedButton == QtWidgets.QMessageBox.Yes:
+            mailFuncs.sendMail(user, 'Pwd')
+            self.doneDialog()
+
+        # Another check to so if the 'No' button was pressed
+        elif pressedButton == QtWidgets.QMessageBox.No:
+            self.update()
+
+    def doneDialog(self):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        msg.setText('Okay, we have sent a mail with\nyour new password!')
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        self.mainWidget.changeUI('mainMenu')
+
+    def wrongDialog(self):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        msg.setText("Sorry, but we couldn't find your SDU-ID!\nPlease try again.")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        return
+        
 
 class login(standardUI):
     def __init__(self, mainWidget, parent = None):
