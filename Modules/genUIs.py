@@ -29,7 +29,9 @@ class swipeLineEdit(QtWidgets.QLineEdit):
         self.parent = parent
 
     def keyPressEvent(self, event):
-        super(swipeLineEdit, self).keyPressEvent(event)
+        if event.text() != 'æ':
+            if self.parent.cardSequence[0] != 'æ':
+                super(swipeLineEdit, self).keyPressEvent(event)
         self.parent.keyPressEvent(event)
     
 
@@ -147,7 +149,7 @@ class standardUI(QtWidgets.QWidget):
     # A function that updates the UI, will be empty for static UIs, and content will be
     # specified as each UI is set up
     def update(self):
-        pass
+        self.cardSequence = ' '
 
 
 
@@ -193,6 +195,7 @@ class mainMenu(standardUI):
         self.setLayout(grid)
 
     def update(self):
+        super().update()
         self.mainWidget.currentUser = refFuncs.refUserInstance()
         self.mainWidget.currentUserList = []
         self.mainWidget.currentRefUserList = []
@@ -256,18 +259,12 @@ class multiMode(standardUI):
                 self.newUserDialog(False)
     
     def enterAction(self):
-        text = self.inputEdit.text()
-        while True:
-            try:
-                units = int(text)
-                break
-            except:
-                text = text[:-1]
-                print(text)
-                if text == '':
-                    self.emptyLineDialog()
-                    self.update()
-                    return
+        if self.inputEdit.text() == '':
+            self.emptyLineDialog()
+            self.update()
+            return
+        
+        units = int(self.inputEdit.text())
                     
         self.mainWidget.currentUser.addSome(units)
         self.mainWidget.currentUser.saveUser()
@@ -276,6 +273,7 @@ class multiMode(standardUI):
         self.mainWidget.changeUI('markDone')
 
     def update(self):
+        super().update()
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
 

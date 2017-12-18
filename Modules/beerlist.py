@@ -19,7 +19,7 @@ class mainWindow(QtWidgets.QWidget):
         self.currentUser = refFuncs.refUserInstance()
         self.currentUserList = []
         self.currentRefUserList = []
-        self.transfer = {}
+        self.transfer = []
 
         # An instance of stacked widget is set up
         self.widgetStack = QtWidgets.QStackedWidget(self)

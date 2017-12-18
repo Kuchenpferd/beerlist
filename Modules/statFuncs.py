@@ -90,7 +90,7 @@ def saveStats(stats):
             statFile.write(line)
 
 # A function that updates the overall stats given the statType and units
-def updateStats(statType, units):
+def updateStats(statType, units = 1):
 
     # First of the current yearAndMonth, dayOfMonth and hour is determined
     yearAndMonth = date.today().strftime('%y-%m')
