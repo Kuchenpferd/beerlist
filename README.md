@@ -7,11 +7,11 @@ UIs to do:
  - Multimode - Done! (Might need a revisit, we'll see) 
  - MarkDone - Done!
  - Reset Password - Done!
- - Login (Static) (UI done, lacks functionality)
- - Logged in (Needs input) (UI done, lacks functionality)(+Dialogx2) 
- - Change Password (Needs input) (UI done, lacks functionality)
- - Change card (Needs input) (UI done, lacks functionality)
- - Paymode (Needs input) (UI done, lacks functionality)
+ - Login - Done!
+ - Logged in - Done!
+ - Change Password - Done!
+ - Change card - Done!
+ - Paymode - Done!
  - New User (sduId, name, mail, pwd) (UI done, lacks functionality) (+Dialog)
  - New User (new card) (UI done, lacks functionality)
  - New User (Old Users) (UI done, lacks functionality) (+Dialog)

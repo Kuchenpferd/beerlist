@@ -40,7 +40,7 @@ class statInstance(object):
             self.newUsers += units
 
 # A function that load the statistics file specific to the 'yearAndMonth' specified
-# (stst files are named by yearAndMonth) and returns a list of stats
+# (stat files are named by yearAndMonth) and returns a list of stats
 def loadStats(yearAndMonth, stats = []):
 
     # First the path is set to the specific file

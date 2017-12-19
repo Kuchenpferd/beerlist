@@ -5,6 +5,8 @@ import sys
 import inputWidgets
 import userFuncs, refFuncs, statFuncs, mailFuncs
 from PyQt5 import QtWidgets, QtCore, QtGui
+from hashlib import sha256
+from time import sleep
 
 workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
@@ -335,7 +337,10 @@ class markDone(standardUI):
         self.setLayout(grid)
 
     def update(self):
-        units = self.mainWidget.transfer[0]
+        try:
+            units = self.mainWidget.transfer[0]
+        except:
+            units = 1
         amount = units*userFuncs.price
         self.mainWidget.transfer = []
         
@@ -376,7 +381,7 @@ class resetPwd(standardUI):
         contentFrame.setLayout(vbox)
 
     def update(self):
-        self.cardSequence = ' '
+        super().update()
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
 
@@ -387,14 +392,13 @@ class resetPwd(standardUI):
                 self.enterAction(swipedUser)
             else:
                 self.mainWidget.currentUser.cardId = self.cardSequence
-                self.newUserDialog(False)
-                self.update()
+                self.newUserDialog(True)
 
     def enterAction(self, user = None):
         if user == None:
             user = userFuncs.findUserNoCard(self.inputEdit.text())
             if user == None:
-                self.wrongDialog()
+                self.errorDialog()
                 self.update()
                 return
         self.newPwdDialog(user)
@@ -432,7 +436,7 @@ class resetPwd(standardUI):
         msg.exec_()
         self.mainWidget.changeUI('mainMenu')
 
-    def wrongDialog(self):
+    def errorDialog(self):
         
         # A message box is set up with a text and a button
         msg = QtWidgets.QMessageBox(self.mainWidget)
@@ -450,6 +454,8 @@ class login(standardUI):
         super(login, self).__init__(mainWidget, parent)
         self.id = 'login'
         self.swipeActive = True
+        self.input = 0
+        self.count = 1
 
         keyBoard = inputWidgets.inputFrame('full', self)
         keyBoard.enterBtn.clicked.connect(self.enterAction)
@@ -477,21 +483,77 @@ class login(standardUI):
         contentFrame.setLayout(vbox)
 
     def update(self):
+        super().update()
         self.input = 0
+        self.count = 1
+        self.swipeActive = True
         self.titleLabel.setText(self.titleString[0])
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
         self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
 
+    def swipeAction(self):
+        if self.cardSequence[0] == 'æ':
+            swipedUser = userFuncs.findUserCard(self.cardSequence)
+            if swipedUser != None:
+                self.mainWidget.currentUser = swipedUser
+                self.mainWidget.changeUI('loggedIn')
+                
+            else:
+                self.mainWidget.currentUser.cardId = self.cardSequence
+                self.newUserDialog(True)
+
     def enterAction(self):
         if self.input == 0:
+
+            user = userFuncs.findUserNoCard(self.inputEdit.text())
+
+            if user != None:
+                self.mainWidget.currentUser = user
+            else:
+                self.errorDialog()
+                self.update()
+                return
+            
             self.titleLabel.setText(self.titleString[1])
-            self.input = 1
             self.inputEdit.setFocus(True)
             self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Password)
             self.inputEdit.setText('')
+            self.input = 1
+            self.swipeActive = False
+            
         elif self.input == 1:
-            self.mainWidget.changeUI('loggedIn')
+
+            inputPwd = sha256(self.inputEdit.text().encode()).hexdigest()
+            userPwd = self.mainWidget.currentUser.pwd
+
+            if inputPwd == userPwd:
+                self.mainWidget.changeUI('loggedIn')
+                
+            else:
+                self.errorDialog()
+                if self.count == 3:
+                    self.update()
+                else:
+                    self.inputEdit.setText('')
+                    self.count += 1
+                
+    def errorDialog(self):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        if self.input == 0:
+            msg.setText("Sorry, but we couldn't find your SDU-ID!\nPlease try again.")
+        elif self.input == 1 and self.count != 3:
+            msg.setText("Password incorrect!\nPlease try again.")
+        else:
+            msg.setText("Password thrice incorrect!\nPlease enter SDU-ID again.")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        return
 
 class loggedIn(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -507,7 +569,7 @@ class loggedIn(standardUI):
         
         oneBtn = expandButton(self)
         oneBtn.setText('One mark')
-        oneBtn.clicked.connect(lambda: self.mainWidget.changeUI('markDone'))
+        oneBtn.clicked.connect(self.markOne)
         
         multiBtn = expandButton(self)
         multiBtn.setText('Multi mode')
@@ -519,11 +581,11 @@ class loggedIn(standardUI):
 
         chnPwdBtn = expandButton(self)
         chnPwdBtn.setText('Change Password')
-        chnPwdBtn.clicked.connect(lambda: self.mainWidget.changeUI('changePwd'))
+        chnPwdBtn.clicked.connect(self.changePwdDialog)
 
         chnCardBtn = expandButton(self)
         chnCardBtn.setText('Change Card')
-        chnCardBtn.clicked.connect(lambda: self.mainWidget.changeUI('changeCard'))
+        chnCardBtn.clicked.connect(self.changeCardDialog)
 
         grid = QtWidgets.QGridLayout(self)
         grid.setRowStretch(0,1.1)
@@ -538,10 +600,65 @@ class loggedIn(standardUI):
 
         self.setLayout(grid)
 
+    def markOne(self):
+        self.mainWidget.currentUser.addSome()
+        self.mainWidget.currentUser.saveUser()
+        self.mainWidget.changeUI('markDone')
+        
+    def update(self):
+        name = self.mainWidget.currentUser.name
+        balance = self.mainWidget.currentUser.balance
+        self.titleLabel.setText(f'Welcome {name}!\nYour current balance is {balance} kr!\nA negative balance is a good thing!')
+
+    def changePwdDialog(self):
+
+        user = self.mainWidget.currentUser
+        
+        # A message box is set up with a text and two buttons
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True, 'c')
+        msg.move(260,150)
+        msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to change your password?""")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+        # msg.exec_() will return the value of the pressed button
+        pressedButton = msg.exec_()
+
+        # A check to see if the 'Yes' button was pressed, and the UI is then changed
+        if pressedButton == QtWidgets.QMessageBox.Yes:
+            self.mainWidget.changeUI('changePwd')
+
+        # Another check to so if the 'No' button was pressed
+        elif pressedButton == QtWidgets.QMessageBox.No:
+            self.update()
+
+    def changeCardDialog(self):
+
+        user = self.mainWidget.currentUser
+        
+        # A message box is set up with a text and two buttons
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True, 'c')
+        msg.move(260,150)
+        msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to change your card?""")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+        # msg.exec_() will return the value of the pressed button
+        pressedButton = msg.exec_()
+
+        # A check to see if the 'Yes' button was pressed, and the UI is then changed
+        if pressedButton == QtWidgets.QMessageBox.Yes:
+            self.mainWidget.changeUI('changeCard')
+
+        # Another check to so if the 'No' button was pressed
+        elif pressedButton == QtWidgets.QMessageBox.No:
+            self.update()
+
 class changePwd(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(changePwd, self).__init__(mainWidget, parent)
         self.id = 'changePwd'
+        self.pwd = ''
 
         self.input = 0
 
@@ -558,6 +675,7 @@ class changePwd(standardUI):
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
 
         inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
@@ -572,12 +690,27 @@ class changePwd(standardUI):
 
     def enterAction(self):
         if self.input == 0:
+            inputPwd = self.inputEdit.text()
+
+            if len(inputPwd) >= 4:
+                self.pwd = sha256(inputPwd.encode()).hexdigest()
+            else:
+                self.errorDialog()
+                self.update()
+                return
+            
             self.titleLabel.setText(self.titleString[1])
             self.input = 1
             self.inputEdit.setText('')
             self.inputEdit.setFocus(True)
         elif self.input == 1:
-            self.mainWidget.changeUI('loggedIn')
+            if self.pwd == sha256(self.inputEdit.text().encode()).hexdigest():
+                self.mainWidget.currentUser.pwd = self.pwd
+                self.mainWidget.currentUser.saveUser()
+                self.mainWidget.changeUI('loggedIn')
+            else:
+                self.errorDialog()
+                self.update()
 
     def update(self):
         self.titleLabel.setText(self.titleString[0])
@@ -585,11 +718,27 @@ class changePwd(standardUI):
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
 
+    def errorDialog(self):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        if self.input == 0:
+            msg.setText("The password should be at least\n4 characters long!")
+        else:
+            msg.setText("Sorry, but the two passwords didn't match!\nPlease try again!")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        return
+
 class changeCard(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(changeCard, self).__init__(mainWidget, parent)
         self.id = 'changeCard'
         self.swipeActive = True
+        self.cardString = ' '
 
         self.input = 0
 
@@ -610,14 +759,48 @@ class changeCard(standardUI):
 
     def swipeAction(self):
         if self.input == 0:
-            self.titleLabel.setText(self.titleString[1])
-            self.input = 1
+            if self.cardSequence[0] == 'æ':
+                self.cardString = self.cardSequence
+                self.titleLabel.setText(self.titleString[1])
+                self.input = 1
+            else:
+                self.errorDialog()
+                self.update()
         elif self.input == 1:
-            self.mainWidget.changeUI('loggedIn')
+            if self.cardSequence[0] == 'æ':
+                if self.cardSequence == self.cardString:
+                    self.mainWidget.currentUser.cardId = self.cardSequence
+                    self.mainWidget.currentUser.saveUser()
+                    self.mainWidget.changeUI('loggedIn')
+                else:
+                    self.errorDialog()
+                    self.update()
+            else:
+                self.input = 0
+                self.errorDialog()
+                self.update()
+                    
 
     def update(self):
-        self.titleLabel.setText(self.titleString[0])
+        super().update()
+        name = self.mainWidget.currentUser.name
+        self.titleLabel.setText(f"Hi {name}!\nTo register a new card please swipe it now!")
         self.input = 0
+
+    def errorDialog(self):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        if self.input == 0:
+            msg.setText("Your card was not recognized as\na student card!")
+        else:
+            msg.setText("Sorry, but the swiped cards didn't match!\nPlease try again!")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        return
 
 class payMode(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -626,7 +809,7 @@ class payMode(standardUI):
 
         self.extraAmount = 50
 
-        self.titleString = 'Scan this to pay your balance {operator} {extraAmount} kr,\nthat is {totalAmount} kr'
+        self.titleString = 'Scan this to pay your balance{operator} {extraAmount} kr,\nthat is {totalAmount} kr'
         
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString)
@@ -634,11 +817,12 @@ class payMode(standardUI):
         titleLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
         self.titleLabel = titleLabel
 
-        self.qrPixmap = QtGui.QPixmap(resourceFolder + 'qrcode.png').scaledToHeight(300)
+        qrPixmap = QtGui.QPixmap(resourceFolder + 'qrcode.png').scaledToHeight(300)
         
         qrLabel = QtWidgets.QLabel(self)
-        qrLabel.setPixmap(self.qrPixmap)
+        qrLabel.setPixmap(qrPixmap)
         qrLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
+        self.qrLabel = qrLabel
 
         minusBtn = expandButton(self)
         minusBtn.setText('- 50')
@@ -665,9 +849,39 @@ class payMode(standardUI):
         self.setLayout(grid)
 
     def updateQr(self, operator):
-        pass
+        user = self.mainWidget.currentUser
+        if operator == 'plus':
+            self.extraAmount += 50
+        elif operator == 'minus':
+            self.extraAmount -= 50
+            if self.extraAmount + user.balance < 0:
+                self.extraAmount = - user.balance
+        else:
+            self.extraAmount = 0
+
+        totalAmount = self.extraAmount + user.balance
+        
+        if self.extraAmount < 0:
+            self.titleLabel.setText(f'Scan this to pay your balance minus {-self.extraAmount} kr,\nthat is {totalAmount} kr')
+        else:
+            self.titleLabel.setText(f'Scan this to pay your balance plus {self.extraAmount} kr,\nthat is {totalAmount} kr')
+
+        qrPath = mailFuncs.generateQR(user, self.extraAmount)
+        
+        qrPixmap = QtGui.QPixmap(qrPath).scaledToHeight(300)
+        self.qrLabel.setPixmap(qrPixmap)
 
     def update(self):
+        user = self.mainWidget.currentUser
+        operator = ' plus'
+        self.extraAmount = 50
+        totalAmount = user.balance + self.extraAmount
+        qrPath = mailFuncs.generateQR(user, self.extraAmount)
+        
+        qrPixmap = QtGui.QPixmap(qrPath).scaledToHeight(300)
+
+        self.qrLabel.setPixmap(qrPixmap)
+        self.titleLabel.setText(f'Scan this to pay your balance{operator} {self.extraAmount} kr,\nthat is {totalAmount} kr')
         pass
         
 def main():
