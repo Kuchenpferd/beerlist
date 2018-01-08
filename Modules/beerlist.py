@@ -17,7 +17,6 @@ class mainWindow(QtWidgets.QWidget):
         self.setGeometry(50,50,800,480)
 
         self.currentUser = refFuncs.refUserInstance()
-        self.currentUserList = []
         self.currentRefUserList = []
         self.transfer = []
 
@@ -80,7 +79,7 @@ class mainWindow(QtWidgets.QWidget):
         self.widgetStack.setCurrentWidget(UI)
         
         # The UI is updated
-        UI.update()        
+        UI.update()    
 
 
     

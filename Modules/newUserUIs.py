@@ -3,7 +3,10 @@
 
 import sys
 import inputWidgets
+import userFuncs, refFuncs
 from genUIs import expandButton, swipeLineEdit, standardUI
+from hashlib import sha256
+from math import ceil
 from PyQt5 import QtWidgets, QtCore
 
 workFolder = './../'
@@ -20,6 +23,8 @@ class newUserInitial(standardUI):
         super(newUserInitial, self).__init__(mainWidget, parent)
         self.id = 'newUserInitial'
 
+        self.pwd = ' '
+
         self.input = 'sduId'
 
         keyBoard = inputWidgets.inputFrame('full', self)
@@ -29,22 +34,14 @@ class newUserInitial(standardUI):
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
-        self.titleString = ['Please enter your SDU-ID:',
-                            'Please enter your full name:',
-                            'Please enter your preferred SDU-ID:',
-                            'Please enter your sdu email:',
-                            'Please enter a password (min. 6 chars):',
-                            'Please enter the password again']
-
         titleLabel = QtWidgets.QLabel(self)
-        titleLabel.setText(self.titleString[0])
         titleLabel = changeFont(titleLabel, 12, True, 'c')
         titleLabel.setAlignment(QtCore.Qt.Alignment(QtCore.Qt.AlignCenter))
         self.titleLabel = titleLabel
 
         empBtn = expandButton(self)
         empBtn.setText('Employee')
-        empBtn.clicked.connect(self.employeeMode)
+        empBtn.clicked.connect(lambda: self.updateMode('sduIdAlt'))
         self.empBtn = empBtn
 
         inputEdit = swipeLineEdit(self)
@@ -59,111 +56,238 @@ class newUserInitial(standardUI):
         self.grid = grid
         contentFrame.setLayout(grid)
 
-    def employeeMode(self):
-        self.input = 'sduIdAlt'
-
-        self.titleLabel.setText(self.titleString[2])
-        
-        self.empBtn.hide()
-
-        self.grid.removeWidget(self.titleLabel)
-        self.grid.addWidget(self.titleLabel, 0, 0, 1, 4)
-
-        self.inputEdit.setText('')
-        self.inputEdit.setFocus(True)
-
     def update(self):
-        self.input = 'sduId'
+        self.updateMode('sduId')
+        self.pwd = ' '
+
+    def updateMode(self, inputMode):
+        if inputMode == 'sduId':
+            self.input = 'sduId'
         
-        self.titleLabel.setText(self.titleString[0])
-
-        self.empBtn.show()
-
-        self.grid.removeWidget(self.titleLabel)
-        self.grid.addWidget(self.titleLabel, 0, 0, 1, 3)
-        
-        self.inputEdit.setText('')
-        self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
-        self.inputEdit.setFocus(True)
-
-    def enterAction(self):
-        if self.input == 'sduId':
-            self.input = 'name'
-
-            self.titleLabel.setText(self.titleString[1])
+            self.empBtn.show()
+            self.grid.removeWidget(self.titleLabel)
+            self.grid.addWidget(self.titleLabel, 0, 0, 1, 3)
+            
+            self.titleLabel.setText('Please enter your SDU-ID:')
+            self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
+            
+        elif inputMode == 'sduIdAlt':
+            self.input = 'sduIdAlt'
 
             self.empBtn.hide()
-
             self.grid.removeWidget(self.titleLabel)
-            self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
             self.grid.addWidget(self.titleLabel, 0, 0, 1, 4)
-            self.inputEdit.setFocus(True)  
-            
-        elif self.input == 'sduIdAlt':
-            self.input = 'name'
 
-            self.titleLabel.setText(self.titleString[1])
-            self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
-            self.inputEdit.setFocus(True)  
-        
-        elif self.input == 'name':
+            self.titleLabel.setText('Please enter your preferred SDU-ID:')
+
+        elif inputMode == 'mail':
             self.input = 'mail'
 
-            self.titleLabel.setText(self.titleString[3])
-            self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
-            self.inputEdit.setFocus(True)  
+            self.titleLabel.setText('Please enter your sdu email:')
 
-        elif self.input == 'mail':
+        elif inputMode == 'name':
+            self.input = 'name'
+
+            self.empBtn.hide()
+            self.grid.removeWidget(self.titleLabel)
+            self.grid.addWidget(self.titleLabel, 0, 0, 1, 4)
+
+            self.titleLabel.setText('Please enter your full name:')
+
+        elif inputMode == 'firstPwd':
             self.input = 'firstPwd'
 
-            self.titleLabel.setText(self.titleString[4])
-            self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-            self.inputEdit.setFocus(True)
+            self.empBtn.hide()
+            self.grid.removeWidget(self.titleLabel)
+            self.grid.addWidget(self.titleLabel, 0, 0, 1, 4)
 
-        elif self.input == 'firstPwd':
+            self.titleLabel.setText('Please enter a password (min. 6 chars):')
+            self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+            
+
+        elif inputMode == 'secPwd':
             self.input = 'secPwd'
 
-            self.titleLabel.setText(self.titleString[5])
-            self.inputEdit.setFocus(True)
+            self.titleLabel.setText('Please enter the password again')
+
+        self.inputEdit.setText('')
+        self.inputEdit.setFocus(True)
+
+
+    def enterAction(self):
+        currentUser = self.mainWidget.currentUser
+        if self.input == 'sduId':
+
+            sduId = self.inputEdit.text().lower()
+
+            if sduId is '':
+                self.errorDialog('The prompt appears to be empty!')
+                self.updateMode('sduId')
+                return
+
+            elif userFuncs.findUserNoCard(sduId) is not None:
+                self.errorDialog('The entered SDU-ID is already in use!')
+                self.updateMode('sduId')
+                return
+
+            elif not userFuncs.validSduId(sduId):
+                self.errorDialog('The format of the SDU-ID was wrong!\nThe allowed formats are "abcde12" or "abcd123"!')
+                self.updateMode('sduId')
+                return
+
+            name = refFuncs.findName(sduId)
+            refUser, refUserList = refFuncs.findRefUser(sduId)
+            self.mainWidget.currentRefUserList = refUserList
+
+            try:
+                if name is not None:
+                    refUser.name = name
+                self.errorDialog(f"""Hi {refUser.name},\n
+                                     You previously had a balance of {refUser.balance}.\n
+                                     Welcome to the new system!""")
+                currentUser.name = refUser.name
+                currentUser.sduId = refUser.sduId
+                currentUser.mail = '{refUser.sduId}@student.sdu.dk'
+                currentUser.balance = refUser.balance
+                self.updateMode('firstPwd')
+
+            except AttributeError:
+                if name is not None:
+                    self.errorDialog(f"""Hi {name},
+                                         We found yor name using your SDU-ID!""")
+                        currentUser.name = name
+                        currentUser.sduId = sduId
+                        currentUser.mail = '{sduId}@student.sdu.dk'
+                        self.updateMode('firstPwd')
+                else:
+                    self.errorDialog("""Sorry we couldn't find your name automatically,\n
+                                        Please enter it manually!""")
+                    currentUser.sduId = sduId
+                    currentUser.mail = '{sduId}@student.sdu.dk'
+                    self.updateMode('name')
+                
+        elif self.input == 'sduIdAlt':
+
+            sduId = self.inputEdit.text().lower()
+
+            if sduId is '':
+                self.errorDialog('The prompt appears to be empty!')
+                self.updateMode('sduIdAlt')
+                return
+
+            elif userFuncs.findUserNoCard(sduId) is not None:
+                self.errorDialog('The entered SDU-ID is already in use!')
+                self.updateMode('sduIdAlt')
+                return
+
+            refUser, refUserList = refFuncs.findRefUser(sduId)
+            self.mainWidget.currentRefUserList = refUserList
+            
+            if refUser is not None:
+                self.errorDialog(f"""Hi {refUser.name},\n
+                                     You previously had a balance of {refUser.balance}.\n
+                                     Welcome to the new system!""")
+                currentUser.name = refUser.name
+                currentUser.balance = refUser.balance
+
+            currentUser.sduId = refUser.sduId
+            self.updateMode('mail')
+        
+        elif self.input == 'mail':
+
+            mail = self.inputEdit.text().lower()
+            mailComp = mail.split('@')
+
+            if len(mailComp) is not 2 or len(mailComp[0]) is 0:
+                self.errorDialog('Your mail should follow the format "some@thing.sdu.dk"!')
+                self.updateMode('mail')
+
+            elif 'sdu.dk' not in mail:
+                self.errorDialog('Please enter an SDU mail!')
+                self.updateMode('mail')
+
+            else:
+                currentUser.mail = mail
+                self.updateMode('name')
+
+        elif self.input == 'name':
+            
+            name = self.inputEdit.text().title()
+
+            if name is '':
+                self.errorDialog('The prompt appears to be empty!')
+                self.updateMode('firstPwd')
+
+            elif len(name.split()) < 2:
+                self.errorDialog('You need to enter at least two names!')
+                self.updateMode('firstPwd')
+
+            else:
+                currentUser.name = name
+                self.updateMode('firstPwd')
+
+        elif self.input == 'firstPwd':
+
+            self.pwd = self.inputEdit.text()
+
+            if len(self.pwd) < 6:
+                self.errorDialog('Please use at least six characters!')
+                self.updateMode('firstPwd')
+            elif ' ' in self.pwd:
+                self.errorDialog('Your password should not contain spaces!')
+                self.updateMode('firstPwd')
+            else:
+                self.updateMode('secPwd')
 
         elif self.input == 'secPwd':
-            self.mainWidget.changeUI('newUserCard')
+
+            pwd = self.inputEdit.text()
+
+            if pwd != self.pwd:
+                self.errorDialog("The passwords doesn't match!\nPlease try again!")
+                self.updateMode('firstPwd')
+                return
             
-        self.inputEdit.setText('')
+            currentUser.pwd = sha256(pwd.encode()).hexdigest()
 
-class newUserCard(standardUI):
-    def __init__(self, mainWidget, parent = None):
-        super(newUserCard, self).__init__(mainWidget, parent)
-        self.id = 'newUserCard'
-        self.swipeActive = True
+            if balance is None:
+                self.balanceDialog()
+                return
 
-        self.input = 0
+            if cardId is None:
+                self.mainWidget.changeUI('newUserCard')
 
-        self.titleString = ['Hi {name}!\nPlease swipe your card!',
-                            'Please swipe it again!']
+            else:
+                self.mainWidget.changeUI('newUserFinal')
+    
+     def errorDialog(self, errorText):
         
-        titleLabel = QtWidgets.QLabel(self)
-        titleLabel.setText(self.titleString[0])
-        titleLabel = changeFont(titleLabel, 12, True, 'c')
-        self.titleLabel = titleLabel
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        msg.setText(errorText)
+       
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
-        vbox = QtWidgets.QVBoxLayout(self)
-        vbox.addStretch(1)
-        vbox.addWidget(titleLabel)
-        vbox.addStretch(1)
+        msg.exec_()
+        return
+
+    def balanceDialog(self):
         
-        self.setLayout(vbox)
+        # A message box is set up with a text and two buttons
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(220,180)
+        msg.setText('Did you previously have a non-zero balance?')
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
-    def swipeAction(self):
-        if self.input == 0:
-            self.titleLabel.setText(self.titleString[1])
-            self.input = 1
-        elif self.input == 1:
+        # msg.exec_() will return the value of the pressed button
+        pressedButton = msg.exec_()
+
+        # A check to see if the 'Yes' button was pressed, and the UI is then changed
+        if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('newUserOldUsers')
-
-    def update(self):
-        self.titleLabel.setText(self.titleString[0])
-        self.input = 0
 
 class newUserOldUsers(standardUI):
 
@@ -173,7 +297,11 @@ class newUserOldUsers(standardUI):
 
         self.titleString = 'Please find try to find yourself on the list:'
 
+        self.pageNo = 0
         self.noItems = 8
+        self.totalPages = 1
+        self.refUserList = []
+        self.pageList = []
 
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString)
@@ -194,13 +322,13 @@ class newUserOldUsers(standardUI):
         nextBtn = expandButton(self)
         nextBtn.setText('Next page!')
         nextBtn = changeFont(nextBtn, 12, True, 'c')
-        nextBtn.clicked.connect(lambda: self.changePage('next'))
+        nextBtn.clicked.connect(lambda: self.changePage(1))
         self.nextBtn = nextBtn
         
         prevBtn = expandButton(self)
         prevBtn.setText('Previous page!')
         prevBtn = changeFont(prevBtn, 12, True, 'c')
-        prevBtn.clicked.connect(lambda: self.changePage('prev'))
+        prevBtn.clicked.connect(lambda: self.changePage(-1))
         self.prevBtn = prevBtn
         
         grid = QtWidgets.QGridLayout(self)
@@ -238,7 +366,7 @@ class newUserOldUsers(standardUI):
             meBtns.append(expandButton(self))
             meBtns[i].setText('Me!')
             meBtns[i] = changeFont(meBtns[i], 10)
-            meBtns[i].clicked.connect(lambda: self.foundAction('id'))
+            meBtns[i].clicked.connect(lambda: self.foundActionDialog('userObjectPlaceholder'))
 
             grid.addWidget(nameLabels[i], i + 2, 0, 1, 2)
             grid.addWidget(mailLabels[i], i + 2, 2, 1, 2)
@@ -258,11 +386,109 @@ class newUserOldUsers(standardUI):
         
         self.setLayout(grid)
 
-    def foundAction(self, identifier):
-        pass
+    def update(self):
+
+        self.refUserList = refFuncs.loadRefUsers()
+
+        pageList = []
+        shortList = []
+        for refUser in refUserList:
+
+            if len(shortList) == self.noItems:
+                pageList.append(tmpList)
+                shortList = []
+
+            shortList.append(refUser)
+
+        while True:
+            if len(shortList) != self.noItems:
+                shortList.append(None)
+            else:
+                break
+
+        self.totalPages = len(pageList)
+        self.pageList = pageList
+        self.pageNo = 0
+
+        self.changePage(-1)
 
     def changePage(self, direction):
-        self.mainWidget.changeUI('newUserBalance')
+        
+        self.pageNo += direction
+
+        if self.pageNo < 0:
+            self.prevBtn.hide()
+            self.pageNo -= direction
+
+        elif self.pageNo >= self.totalPages:
+            self.nextBtn.setText("I'm not here!?")
+            self.nextBtn.clicked.connect(self.notThereDialog)
+            self.pageNo -= direction
+
+        else:
+            self.nextBtn.setText('Next page!')
+            self.nextBtn.clicked.connect(lambda: self.changePage(1))
+            self.prevBtn.show()
+
+        shortList = self.pageList[self.pageNo]
+
+        nameLabels = self.nameLabels
+        mailLabels = self.mailLabels
+        balanceLabels = self.balanceLabels
+        meBtns = self.meBtns
+
+        for i in range(self.noItems):
+            refUser = shortList[i]
+
+            if refUser is not None:
+                nameLabels[i].setText(f'{refUser.name}')
+                mailLabels[i].setText(f'{refUser.mail}')
+                balanceLabels[i].setText(f'{refUser.balance}')
+                meBtns[i].clicked.connect(lambda: self.foundActionDialog(refUser))
+
+                nameLabels[i].show()
+                mailLabels[i].show()
+                balanceLabels[i].show()
+                meBtns[i].show()
+            else:
+                nameLabels[i].hide()
+                mailLabels[i].hide()
+                balanceLabels[i].hide()
+                meBtns[i].hide()
+
+    def foundActionDialog(self, refUser):
+        
+        # A message box is set up with a text and two buttons
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(220,180)
+        msg.setText(f'Oh, so you are {refUser.name[0]},\nwith a balance of {refUser.balance}?')
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+        # msg.exec_() will return the value of the pressed button
+        pressedButton = msg.exec_()
+
+        # A check to see if the 'Yes' button was pressed, and the UI is then changed
+        if pressedButton == QtWidgets.QMessageBox.Yes:
+            self.mainWidget.currentUser.balance = refUser.balance
+            self.mainWidget.currentRefUserList = self.refUserList.removeWidget(refUser)
+            self.mainWidget.changeUI('newUserCard')
+
+    def notThereDialog(self):
+        
+        # A message box is set up with a text and two buttons
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(220,180)
+        msg.setText("Sorry, you will have to enter it manually then.\nAre you sure you're not there?")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+        # msg.exec_() will return the value of the pressed button
+        pressedButton = msg.exec_()
+
+        # A check to see if the 'Yes' button was pressed, and the UI is then changed
+        if pressedButton == QtWidgets.QMessageBox.Yes:
+            self.mainWidget.changeUI('newUserBalance')
 
 class newUserBalance(standardUI):
 
@@ -302,6 +528,40 @@ class newUserBalance(standardUI):
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
         # A dialog box to determine the sign should go here
+
+class newUserCard(standardUI):
+    def __init__(self, mainWidget, parent = None):
+        super(newUserCard, self).__init__(mainWidget, parent)
+        self.id = 'newUserCard'
+        self.swipeActive = True
+
+        self.input = 0
+
+        self.titleString = ['Hi {name}!\nPlease swipe your card!',
+                            'Please swipe it again!']
+        
+        titleLabel = QtWidgets.QLabel(self)
+        titleLabel.setText(self.titleString[0])
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        self.titleLabel = titleLabel
+
+        vbox = QtWidgets.QVBoxLayout(self)
+        vbox.addStretch(1)
+        vbox.addWidget(titleLabel)
+        vbox.addStretch(1)
+        
+        self.setLayout(vbox)
+
+    def swipeAction(self):
+        if self.input == 0:
+            self.titleLabel.setText(self.titleString[1])
+            self.input = 1
+        elif self.input == 1:
+            self.mainWidget.changeUI('newUserOldUsers')
+
+    def update(self):
+        self.titleLabel.setText(self.titleString[0])
+        self.input = 0
 
 class newUserFinal(standardUI):
     def __init__(self, mainWidget, parent = None):

@@ -3,6 +3,7 @@
 
 import os
 import csv
+import re
 from statFuncs import updateStats
 from datetime import date
 
@@ -171,7 +172,7 @@ def findUserCard(cardString, users = []):
             return user
     return None
 
-# A function very similar to the previous one, only it cheks if the input string
+# A function very similar to the previous one, only it checks if the input string
 # matches any sduId or mail of the users.
 def findUserNoCard(inputString, users = []):
     if users == []:
@@ -182,6 +183,17 @@ def findUserNoCard(inputString, users = []):
         elif inputString == user.mail:
             return user
     return None
+
+def validSduId(sduId):
+    valid = re.match('[a-z]{5}[0-9]{2}',sduId)
+    if valid is not None:
+        if valid.group() == sduId:
+            return True
+    valid = re.match('[a-z]{4}[0-9]{3}',sduId)
+    if valid is not None:
+        if valid.group() == sduId:
+            return True
+    return False
 
 def refToMainUser(refUser):
     mainUser = userInstance(refUser.name, refUser.mail, refUser.sduId, refUser.pwd, refUser.balance)

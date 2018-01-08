@@ -16,12 +16,12 @@ class refUserInstance(object):
 
     # The reference user does not have nearly as many properties as the ordinary user,
     # so the rest of the necessaries are set to None.
-    def __init__(self, name = '', mail = '', balance = 0, pwd = '', cardId = ''):
+    def __init__(self, name = None, mail = None, balance = None, pwd = None, cardId = None):
         self.name = name
         self.mail = mail
         self.sduId = mail.split('@')[0]
         self.balance = balance
-        self.pwd = ''
+        self.pwd = pwd
         self.cardId = cardId
 
 # A function that loads all reference users and returns them in a list 'refUsers'
@@ -60,6 +60,15 @@ def saveRefUsers(refUsers):
         # Each user get their own row, and the relevant properties are written
         for refUser in refUsers:
             rowWriter.writerow([refUser.name, refUser.mail, str(refUser.balance)])
+
+def findRefUser(inputString, refUsers = []):
+    if refUsers == []:
+        refUsers = loadRefUsers()
+    for refUser in refUsers:
+        if inputString == refUser.sduId:
+            refUsers = refUsers.remove(refUser)
+            return refUser, refUsers
+    return None, refUsers
 
 # A function to look through the file containing the names and mails of all students
 # and return the name if the input string matches the mail of sduId of the student

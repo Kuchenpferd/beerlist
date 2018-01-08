@@ -14,7 +14,7 @@ resourceFolder = workFolder + 'Resources/'
 changeFont = inputWidgets.changeFont
 
 # List of UI ids:
-uiIdList = ['None', 'mainMenu', 'multiMode', 'markDone', 'resetPwd',
+uiIdList = ['mainMenu', 'multiMode', 'markDone', 'resetPwd',
             'login', 'loggedIn', 'changePwd', 'changeCard', 'payMode',
             'newUserInitial', 'newUserCard', 'newUserOldUsers',
             'newUserBalance', 'newUserFinal']
@@ -199,14 +199,13 @@ class mainMenu(standardUI):
     def update(self):
         super().update()
         self.mainWidget.currentUser = refFuncs.refUserInstance()
-        self.mainWidget.currentUserList = []
         self.mainWidget.currentRefUserList = []
         self.mainWidget.transfer = []
 
     def swipeAction(self):
         if self.cardSequence[0] == 'æ':
             swipedUser = userFuncs.findUserCard(self.cardSequence)
-            if swipedUser != None:
+            if swipedUser is not None:
                 swipedUser.addSome()
                 swipedUser.saveUser()
                 self.mainWidget.transfer.append(1)
@@ -234,6 +233,7 @@ class multiMode(standardUI):
 
         self.titleString = ['Please enter the wanted amount and swipe your card:',
                             'Please enter the wanted amount and press enter:']
+                            
         
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString[0])
@@ -254,7 +254,7 @@ class multiMode(standardUI):
     def swipeAction(self):
         if self.cardSequence[0] == 'æ':
             swipedUser = userFuncs.findUserCard(self.cardSequence)
-            if swipedUser != None:
+            if swipedUser is not None:
                 self.mainWidget.currentUser = swipedUser
                 self.enterAction()
             else:
@@ -388,16 +388,16 @@ class resetPwd(standardUI):
     def swipeAction(self):
         if self.cardSequence[0] == 'æ':
             swipedUser = userFuncs.findUserCard(self.cardSequence)
-            if swipedUser != None:
+            if swipedUser is not None:
                 self.enterAction(swipedUser)
             else:
                 self.mainWidget.currentUser.cardId = self.cardSequence
                 self.newUserDialog(True)
 
     def enterAction(self, user = None):
-        if user == None:
+        if user is None:
             user = userFuncs.findUserNoCard(self.inputEdit.text())
-            if user == None:
+            if user is None:
                 self.errorDialog()
                 self.update()
                 return
@@ -495,7 +495,7 @@ class login(standardUI):
     def swipeAction(self):
         if self.cardSequence[0] == 'æ':
             swipedUser = userFuncs.findUserCard(self.cardSequence)
-            if swipedUser != None:
+            if swipedUser is not None:
                 self.mainWidget.currentUser = swipedUser
                 self.mainWidget.changeUI('loggedIn')
                 

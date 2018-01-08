@@ -12,10 +12,10 @@ UIs to do:
  - Change Password - Done!
  - Change card - Done!
  - Paymode - Done!
- - New User (sduId, name, mail, pwd) (UI done, lacks functionality) (+Dialog)
- - New User (new card) (UI done, lacks functionality)
- - New User (Old Users) (UI done, lacks functionality) (+Dialog)
+ - New User (sduId, name, mail, pwd) - Done! (Needs testing!)
+ - New User (Old Users) - Done! (Needs testing!)
  - New User (balance) (UI done, lacks functionality)
+ - New User (new card) (UI done, lacks functionality)
  - New User (Final) (UI done, lacks functionality)
  
 Other things to do:
