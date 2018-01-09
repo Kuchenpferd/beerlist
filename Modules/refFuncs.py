@@ -19,7 +19,10 @@ class refUserInstance(object):
     def __init__(self, name = None, mail = None, balance = None, pwd = None, cardId = None):
         self.name = name
         self.mail = mail
-        self.sduId = mail.split('@')[0]
+        if mail is not None:
+            self.sduId = mail.split('@')[0]
+        else:
+            self.sduId = None
         self.balance = balance
         self.pwd = pwd
         self.cardId = cardId

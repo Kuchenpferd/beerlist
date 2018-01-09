@@ -9,6 +9,7 @@ from hashlib import sha256
 from math import ceil
 from PyQt5 import QtWidgets, QtCore
 
+contact = 'mikkc13'
 workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
 
@@ -59,6 +60,9 @@ class newUserInitial(standardUI):
     def update(self):
         self.updateMode('sduId')
         self.pwd = ' '
+        self.mainWidget.currentUser = refFuncs.refUserInstance()
+        self.mainWidget.currentRefUserList = []
+        self.mainWidget.transfer = []
 
     def updateMode(self, inputMode):
         if inputMode == 'sduId':
@@ -153,12 +157,12 @@ class newUserInitial(standardUI):
 
             except AttributeError:
                 if name is not None:
-                    self.errorDialog(f"""Hi {name},
+                    self.errorDialog(f"""Hi {name},\n
                                          We found yor name using your SDU-ID!""")
-                        currentUser.name = name
-                        currentUser.sduId = sduId
-                        currentUser.mail = '{sduId}@student.sdu.dk'
-                        self.updateMode('firstPwd')
+                    currentUser.name = name
+                    currentUser.sduId = sduId
+                    currentUser.mail = '{sduId}@student.sdu.dk'
+                    self.updateMode('firstPwd')
                 else:
                     self.errorDialog("""Sorry we couldn't find your name automatically,\n
                                         Please enter it manually!""")
@@ -252,6 +256,7 @@ class newUserInitial(standardUI):
 
             if balance is None:
                 self.balanceDialog()
+                self.mainWidget.currentUser.balance = 0
                 return
 
             if cardId is None:
@@ -260,7 +265,7 @@ class newUserInitial(standardUI):
             else:
                 self.mainWidget.changeUI('newUserFinal')
     
-     def errorDialog(self, errorText):
+    def errorDialog(self, errorText):
         
         # A message box is set up with a text and a button
         msg = QtWidgets.QMessageBox(self.mainWidget)
@@ -472,7 +477,12 @@ class newUserOldUsers(standardUI):
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.currentUser.balance = refUser.balance
             self.mainWidget.currentRefUserList = self.refUserList.removeWidget(refUser)
-            self.mainWidget.changeUI('newUserCard')
+
+            if self.mainWidget.currentUser.cardId is None:
+                self.mainWidget.changeUI('newUserCard')
+
+            else:
+                self.mainWidget.changeUI('newUserFinal')
 
     def notThereDialog(self):
         
@@ -503,7 +513,7 @@ class newUserBalance(standardUI):
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
-        self.titleString = 'Please enter your current balance:'
+        self.titleString = 'Please enter your current balance:\n(Sign will be added later)'
         
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString)
@@ -521,13 +531,61 @@ class newUserBalance(standardUI):
         
         contentFrame.setLayout(vbox)
 
-    def enterAction(self):
-        self.mainWidget.changeUI('newUserFinal')
-
     def update(self):
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
-        # A dialog box to determine the sign should go here
+
+    def enterAction(self):
+
+        balance = int(self.inputEdit.text())
+
+        if balance >= 900:
+            self.errorDialog(f'Sorry, but that seems very unlikely!\nPlease try again or contact {contact}!')
+            self.update()
+            return
+
+        elif self.enterActionDialog():
+            balance = - balance
+
+        self.mainWidget.currentUser.balance = balance
+
+        if self.mainWidget.currentUser.cardId is None:
+            self.mainWidget.changeUI('newUserCard')
+
+        else:
+            self.mainWidget.changeUI('newUserFinal')
+
+    def enterActionDialog(self):
+        # A message box is set up with a text and two buttons
+            msg = QtWidgets.QMessageBox(self.mainWidget)
+            msg = changeFont(msg, 12, True)
+            msg.move(220,180)
+            msg.setText('Was the sign of your balance "+" (Yes) or "-" (No)')
+            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+            # msg.exec_() will return the value of the pressed button
+            pressedButton = msg.exec_()
+
+            # A check to see if the 'Yes' button was pressed, and the UI is then changed
+            if pressedButton == QtWidgets.QMessageBox.Yes:
+                return False
+
+            else:
+                return True
+
+    def errorDialog(self, errorText):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        msg.setText(errorText)
+       
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        return
+
 
 class newUserCard(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -536,6 +594,7 @@ class newUserCard(standardUI):
         self.swipeActive = True
 
         self.input = 0
+        self.swipeOne = ' '
 
         self.titleString = ['Hi {name}!\nPlease swipe your card!',
                             'Please swipe it again!']
@@ -552,16 +611,37 @@ class newUserCard(standardUI):
         
         self.setLayout(vbox)
 
+    def update(self):
+        super().update()
+        self.titleLabel.setText(self.titleString[0])
+        self.input = 0
+
     def swipeAction(self):
         if self.input == 0:
             self.titleLabel.setText(self.titleString[1])
+            self.swipeOne = self.cardSequence
             self.input = 1
-        elif self.input == 1:
-            self.mainWidget.changeUI('newUserOldUsers')
 
-    def update(self):
-        self.titleLabel.setText(self.titleString[0])
-        self.input = 0
+        elif self.input == 1:
+            if self.swipeOne == self.cardSequence:
+                self.mainWidget.currentUser.cardId = self.cardSequence
+                self.mainWidget.changeUI('newUserFinal')
+            else:
+                self.errorDialog("Sorry, but the two swipes didn't match!\nPlease try again!")
+                self.update()
+
+    def errorDialog(self, errorText):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        msg.setText(errorText)
+       
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        return
 
 class newUserFinal(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -614,6 +694,52 @@ class newUserFinal(standardUI):
         grid.setColumnStretch(3,3)
 
         self.setLayout(grid)
+
+    def update(self):
+        user = self.mainWidget.currentUser
+        contentString = [f'{user.name}', f'{user.sduId}', f'{user.mail}', f'{user.balance}']
+
+        for i in range(4):
+            self.contentLabel[i].setText(contentString[i])
+
+    def yesPressed(self):
+        refUserList = self.mainWidget.currentRefUserList
+        refUser = self.mainWidget.currentUser
+        user = userFuncs.refToMainUser(refUser)
+        user.saveUser()
+        if refUserList != []:
+            refFuncs.saveRefUsers(refUserList)
+        self.errorDialog('Great, your user has now been created!\nPlease note that this does not include a first swipe!')
+        self.mainWidget.changeUI('mainMenu')
+
+    def noPressedDialog(self):
+        # A message box is set up with a text and two buttons
+            msg = QtWidgets.QMessageBox(self.mainWidget)
+            msg = changeFont(msg, 12, True)
+            msg.move(220,180)
+            msg.setText('Are you sure?\nYou will have to start over!')
+            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+            # msg.exec_() will return the value of the pressed button
+            pressedButton = msg.exec_()
+
+            # A check to see if the 'Yes' button was pressed, and the UI is then changed
+            if pressedButton == QtWidgets.QMessageBox.Yes:
+                self.mainWidget.changeUI('newUserInitial')
+
+    def errorDialog(self, errorText):
+        
+        # A message box is set up with a text and a button
+        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = changeFont(msg, 12, True)
+        msg.move(280,100)
+        msg.setText(errorText)
+       
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        msg.exec_()
+        return
+
         
 def main():
     pass

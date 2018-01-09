@@ -2,9 +2,9 @@
 A GUI for the previous beerlist system using Python 3.6
 
 UIs to do:
- - Standard superclass (+Dialogx2) - Done!
+ - Standard superclass - Done!
  - Main - Done!
- - Multimode - Done! (Might need a revisit, we'll see) 
+ - Multimode - Done!
  - MarkDone - Done!
  - Reset Password - Done!
  - Login - Done!
@@ -14,12 +14,13 @@ UIs to do:
  - Paymode - Done!
  - New User (sduId, name, mail, pwd) - Done! (Needs testing!)
  - New User (Old Users) - Done! (Needs testing!)
- - New User (balance) (UI done, lacks functionality)
- - New User (new card) (UI done, lacks functionality)
- - New User (Final) (UI done, lacks functionality)
+ - New User (balance) - Done! (Needs testing!)
+ - New User (new card) - Done! (Needs testing!)
+ - New User (Final) - Done! (Needs testing!)
  
 Other things to do:
  - Redo the mailFuncs.sendMail function - it doesn't work right
+ - Consider a redo of the 'Back' system, it doesn't seem to be working as intended
 
 Dependencies (Everything can now be installed using PIP3): 
  - PyQt5, pyautogui, pyperclip, pyqrcode, pypng
