@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import csv
 from datetime import date, datetime
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)

@@ -184,12 +184,7 @@ class mainMenu(standardUI):
         titleLabel = changeFont(titleLabel, 14, True, 'c')
 
         contentLabel = QtWidgets.QLabel(self)
-        contentLabel.setText(f"""To grab a beer or soda please swipe your card!\n
-                                 To grab multiple, press "Multi Mode"!\n
-                                 To create a new user swipe your card or press "New User"!\n
-                                 To see your balance, grab beers without your card,\n
-                                 change your password or card, please login!\n
-                                 If You have any problems, please contact {contact}}!""")
+        contentLabel.setText(f"""To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"!\nTo see your balance, grab beers without your card,\nchange your password or card, please login!\nIf You have any problems, please contact {contact}!""")
         contentLabel = changeFont(contentLabel)
 
         grid = QtWidgets.QGridLayout()

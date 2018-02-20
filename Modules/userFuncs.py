@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import csv
 import re
 from statFuncs import updateStats
 from datetime import date
