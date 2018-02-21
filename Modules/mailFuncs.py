@@ -16,14 +16,14 @@ resourceFolder = workFolder + 'Resources/'
 dataFolder = workFolder + 'Data/'
 
 # A minimal function to convert the plain string message to an HTML string
-def plaintoHtml(plainString):
+def plainToHtml(plainString):
     htmlString = """<html><body>""" + plainString.replace('\n','<br>') + """</body></html>"""
     return htmlString
 
 # Another small function that encodes an URL with ASCII
 def asciiEncodeUrl(url):
     keys = [('!','%21'), ('*','%2A'), ("'",'%27'), ('(','%28'), (')','%29'), (';','%3B'), (':','%3A'), ('@','%40'), ('&','%26'),
-            ('=','%3D'), ('+','%2B'), ('$','%24'), (',','%2C'), ('/','%2F'). ('?','%3F'), ('#','%23'), ('[','%5B'), (']','%5D')]
+            ('=','%3D'), ('+','%2B'), ('$','%24'), (',','%2C'), ('/','%2F'), ('?','%3F'), ('#','%23'), ('[','%5B'), (']','%5D')]
 
     for key, code in keys:
         url = url.replace(key, code)
@@ -101,7 +101,7 @@ def loginExchange():
         loginUsername = content[3]
 
     # The credentials, configuration and account/session is then setup and then returned.
-    credentials = Credentials(username=loginUserName, password=pwdMail)
+    credentials = Credentials(username=loginUsername, password=pwdMail)
     config = Configuration(server=serverAdress, credentials=credentials)
     account = Account(primary_smtp_address=senderMail, config=config, autodiscover=False, access_type=DELEGATE)
     return account
@@ -142,7 +142,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
                           folder = account.sent,
                           subject = 'Nyt password til Æters Ølliste',
                           body = HTMLBody(messageText),
-                          to_recipients = [Mailbox(email_adress = user.mail)])
+                          to_recipients = [Mailbox(email_address = user.mail)])
 
         try:
 
@@ -188,8 +188,9 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         urlTexts = []
         startIndex = 0
         while True:
-            startIndex = templateText[startIndex:].find('{url}') + startIndex + 5
-            if startIndex != 4:
+            tmpIndex = templateText[startIndex:].find('{url}') + startIndex + 5
+            if tmpIndex - startIndex != 4:
+                startIndex = tmpIndex
                 endIndex = templateText[startIndex:].find('{/url}') + startIndex
                 urlTexts.append(templateText[startIndex:endIndex])
             else:
@@ -218,8 +219,9 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
                 # Next the user specific information is substituted in the template
                 # Valid substitutes are (so far): {name}, {sduId}, {qrcode} and {url}TEXT HERE{/url}
                 subList = [('{name}', user.name), ('{sduId}', user.sduId), ('{qrcode}', f'<img src="cid:{qrCodePath[-10:-4]}">')] + urlSubs
+                messageText = templateText
                 for key, subst in subList:
-                    messageText = templateText.replace(key, subst)
+                    messageText = messageText.replace(key, subst)
 
                 # Next the newly created QR code is loaded into a file attachment
                 with open(qrCodePath, 'rb') as qrFile:
@@ -228,7 +230,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
                 # The remaining message parameters are set (including attaching the QR code)
                 message.attach(qrImage)
                 message.body = HTMLBody(messageText)
-                message.to_recipients = [Mailbox(email_adress = user.mail)]
+                message.to_recipients = [Mailbox(email_address = user.mail)]
 
                 try:
 
