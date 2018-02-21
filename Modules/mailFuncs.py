@@ -2,15 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import smtplib
 import pyqrcode
 from hashlib import sha256
-from time import sleep
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
 from string import ascii_letters, digits
 from random import randrange
+from exchangelib import DELEGATE, Account, Credentials, Configuration, Message, Mailbox, FileAttachment, HTMLBody
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
 workFolder = './../'
@@ -20,9 +16,36 @@ resourceFolder = workFolder + 'Resources/'
 dataFolder = workFolder + 'Data/'
 
 # A minimal function to convert the plain string message to an HTML string
-def plainToHtml(plainString):
-    htmlString = """\<html><head></head><body><p>""" + plainString.replace('\n','<br>') + """</p></body></html>"""
+def plaintoHtml(plainString):
+    htmlString = """<html><body>""" + plainString.replace('\n','<br>') + """</body></html>"""
     return htmlString
+
+# Another small function that encodes an URL with ASCII
+def asciiEncodeUrl(url):
+    keys = [('!','%21'), ('*','%2A'), ("'",'%27'), ('(','%28'), (')','%29'), (';','%3B'), (':','%3A'), ('@','%40'), ('&','%26'),
+            ('=','%3D'), ('+','%2B'), ('$','%24'), (',','%2C'), ('/','%2F'). ('?','%3F'), ('#','%23'), ('[','%5B'), (']','%5D')]
+
+    for key, code in keys:
+        url = url.replace(key, code)
+    return url
+
+# A small function to set up a small "dict" for every text mention of '{url}SOMETHING{/url}'
+# in the mail text. It also handles the setup of the AppRedirect URL, then return the mentioned dict
+def htmlUrls(urlTexts, altUrl, mobilePayUrl):
+
+    # ASCII encoding the two URL that go into the AppRedirect URL
+    altUrl = asciiEncodeUrl(altUrl)
+    mobilePayUrl = asciiEncodeUrl(mobilePayUrl)
+
+    # Then setting up the AppRedirect URL
+    rdctUrl = f'http://rdct.it?site={altUrl}&app={mobilePayUrl}'
+
+    # And finally creating the dict to be used for substitutions later
+    urlSubs = []
+    for urlText in urlTexts:
+        urlSubs.append((f'{{url}}{urlText}{{/url}}', f'<a href={rdctUrl}>{urlText}</a>'))
+
+    return urlSubs
 
 # A small function that generates a new random password
 def genNewPwd(pwdLen = 8):
@@ -43,7 +66,7 @@ def genNewPwd(pwdLen = 8):
     return newPwd
 
 # A function that generates a QR code for MobilePay, and returns the path to the code
-def generateQR(user, extraAmount, returnLink = False):
+def generateQR(user, extraAmount, returnUrl = False):
 
     # The amount is determined from the user balance and some extra amount
     # (the extra amount can be negative). If the amount is below zero,
@@ -59,19 +82,14 @@ def generateQR(user, extraAmount, returnLink = False):
 
     # Afterwards the path to the picture is returned, along with the content of the QR
     # code (only if explicitly requested)
-    if returnLink:
+    if returnUrl:
         return resourceFolder + 'qrcode.png', qrContent
     else:
         return resourceFolder + 'qrcode.png'
 
-# A function to send mails to user. There are two mail types, 'Debt' and 'Pwd'.
-# The function returns True if the mail was succesfully sent (or skipped, see below),
-# and returns false if it tried sending the mail thrice (once) for debt (pwd) and still failed
-def sendMail(user, mailType = 'Debt', debtLimit = 0):
-
-    # If the type is debt, and the current users balance is below the debtLimit, they will not receive a mail
-    if mailType == 'Debt' and user.balance <= debtLimit:
-        return True
+# A function that handles the login and authentication process with the Exchange server,
+# then returns the 'account' (similar to a 'session') object
+def loginExchange():
 
     # First all the required mail credentials are loaded from its file and stored in the relevant variables
     path = dataFolder + 'mailCredentials.t'
@@ -79,142 +97,158 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         content = credFile.read().splitlines()
         senderMail = content[0]
         pwdMail = content[1]
-        smtpServer = content[2]
+        serverAdress = content[2]
         loginUsername = content[3]
 
-    # As we want to be able to use both pictures and links, the root message must be a multipart object with subtype related
-    msgRoot = MIMEMultipart('related')
+    # The credentials, configuration and account/session is then setup and then returned.
+    credentials = Credentials(username=loginUserName, password=pwdMail)
+    config = Configuration(server=serverAdress, credentials=credentials)
+    account = Account(primary_smtp_address=senderMail, config=config, autodiscover=False, access_type=DELEGATE)
+    return account
 
-    # From, To and preamble (?) is set for the message
-    msgRoot['From'] = senderMail
-    msgRoot['To'] = user.mail
-    msgRoot.preamble = 'Where will this go?'
+# A function to send mails to user. There are two mail types, 'Debt' and 'Pwd'.
+# If the mail type is 'Pwd', a new pwd is created for user and then sent to their mail.
+# A succesfully sent mail returns True and an unsuccesfull returns False.
+#
+# If the mail type is 'Debt', the input param user should actually be a list of users,
+# who will each recieve a 'debt' mail if their balance is above the debtLimit.
+# A set of tuples is returned, containg a boolean flag for each user, which is True if their balance
+# is above the debtLimit and succesfully recieved a mail and False in any other case (mail not sent or low balance)
+def sendMail(user, mailType = 'Debt', debtLimit = 0):
 
-    # Sets up the mail to be a password reset mail
+    # 'Pwd' mail
     if mailType == 'Pwd':
 
-        # First of we get the mail content from a file
-        path = dataFolder + 'newPwdMail.t'
-        with open(path, 'r') as mailFile:
-            plainTxt = mailFile.read()
-
-        # Next we generate a random password and finds the SHA256 hash
+        # We generate a random password and find the SHA256 hash
         newPwd = genNewPwd()
         newPwdHash = sha256(newPwd.encode()).hexdigest()
 
-        # The subject line for the mail is set as well
-        msgRoot['Subject'] = 'Nyt password til Æters Ølliste'
+        # The mail text for a 'Pwd' mail is loaded and converted to HTML
+        path = dataFolder + 'newPwdMail.t'
+        with open(path, 'r', encoding='utf-8') as mailFile:
+            messageText = plainToHtml(mailFile.read())
 
-        # Next the user custom information and the password is substituted in the mail
+        # Next the user specific information is substituted in the mail
         # Valid substitutes are (so far): {name}, {sduId} and {pwd}
-        plainTxt = plainTxt.format(name = user.name, sduId = user.sduId, pwd = newPwd)
+        subList = [('{name}', user.name), ('{sduId}', user.sduId), ('{pwd}', newPwd)]
+        for key, subst in subList:
+            messageText = messageText.replace(key, subst)
         
-        # The text is then converted to HTML format
-        htmlTxt = plainToHtml(plainTxt)
+        # A connection is made to the Exchange server
+        account = loginExchange()
 
-    # Sets up the mail to be a debt mail
-    elif mailType == 'Debt':
+        # And a message is created
+        message = Message(account = account,
+                          folder = account.sent,
+                          subject = 'Nyt password til Æters Ølliste',
+                          body = HTMLBody(messageText),
+                          to_recipients = [Mailbox(email_adress = user.mail)])
 
-        # As debt mails are sent repeatedly a delay of 40 s is introduced to
-        # compensate the restriction from the mail server
-        sleep(40)
-
-        # As before the conent of the mail is loaded from a file
-        path = dataFolder + 'debtMail.t'
-        with open(path, 'r') as mailFile:
-            plainTxt = mailFile.read()
-
-        # The parameters for the QR code generation are set up separately for ease of reading
-        extraAmount = 0
-        returnLink = True
-
-        # A QR code and a MobilePay link is generated
-        (path, mobilePayLink) = generateQR(user, extraAmount, returnLink)
-
-        # The subject line of the mail is set
-        msgRoot['Subject'] = 'Opgørelse af Æters Ølliste'
-
-        # An HTML of the plain text is generated before substitutions
-        htmlTxt = plainToHtml(plainTxt)
-
-        # The plain text substitution is done. Some elements are merely comments in plain txt.
-        # Valid substitutions are (so far): {name}, {sduId}, {qrcode}, {balance} and {link}
-        plainTxt = plainTxt.format(name = user.name, sduId = user.sduId,
-                                   qrcode = '(QR kode kan ikke vises)', balance = user.balance,
-                                   link = '(Link virker ikke)')
-
-        # The HTML substitution is done.
-        # Valid substitutions are (so far): {name}, {sduId}, {qrcode}, {balance} and {link}
-        htmlTxt = htmlTxt .format(name = user.name, sduId = user.sduId, balance = user.balance,
-                                    qrcode = '<img src="cid:qrcode">',
-                                    link = '<a href="' + mobilePayLink + '">link</a>')
-
-        # The generated QR code is loaded into a MIMEImage intance
-        with open(path, 'rb') as qrFile:
-            msgImage = MIMEImage(qrFile.read())
-
-        # A header used for identification in the HTML code is added to the picture,
-        # and the picture is attached to the root message
-        msgImage.add_header('Content-ID', '<qrcode>')
-        msgRoot.attach(msgImage)
-
-    # Everything is now common for the two mails again.
-    # The plain/html text lines are converted to MIME text objects using utf8 encoding
-    msgPlain = MIMEText(plainTxt.encode('utf-8'), 'plain', _charset = 'utf-8')
-    msgHtml = MIMEText(htmlTxt.encode('utf-8'), 'html', _charset = 'utf-8')
-    
-    # As both a plain version and an HTML version will be attached we need
-    # a multipart object of subtype 'alternative' to use both.
-    # That object is then attached to the root message.
-    msgAlternative = MIMEMultipart('alternative')
-    msgRoot.attach(msgAlternative)
-
-    # The two MIME text objects are then attached to the alternative message.
-    # Note that the preferred format must always be attached last!
-    msgAlternative.attach(msgPlain)
-    msgAlternative.attach(msgHtml)
-
-    # A connection to the mail server is established, and authenticated
-    # using the credentials loaded earlier.
-    mailServer = smtplib.SMTP_SSL(smtpServer, 465)
-    mailServer.esmtp_features['auth'] = 'LOGIN'
-    mailServer.login(loginUsername, pwdMail)
-
-    # If the mail is a password reset mail, only one try will be made at sending the mail
-    if mailType == 'Pwd':
         try:
-            mailServer.sendmail(senderMail, [user.mail], msgRoot.as_string())
 
-            # If the mail is suceesfully sent, the password of the user is updated and saved and True is returned
+            # We then try sending the message, and if it succeds the users pwd is overwritten
+            # and the user is saved.
+            message.send_and_save()
             user.pwd = newPwdHash
             user.saveUser()
-            mailServer.quit()
-            return True
+            sent = True
+
         except:
-            
-            # If the mail is not send False is returned
-            mailServer.quit()
-            return False
 
-    # If the mailType is 'Debt', 3 tries will be made before returning False
+            # If sending it fails a flag is set to False
+            sent = False
+
+        # The connection is closed and the flag is returned
+        account.protocol.close()
+        return sent
+
+    # 'Debt' mails
     elif mailType == 'Debt':
-        tryCounter = 0
+
+        # As 'Debt' means that 'user' is actually a list and for ease of reading it is renamed to reflect that
+        users = user
+
+        # The list of tuples to be returned
+        usersStatus = []
+
+        # Next the template text of the 'Debt' mail is loaded and (roughly) converted to HTML
+        path = dataFolder + 'debtMail.t'
+        with open(path, 'r', encoding='utf-8') as mailFile:
+            templateText = plainToHtml(mailFile.read())
+
+        # The URL any (non-mobile) webbrowser will show when the embedded hyperlink is pressed
+        altUrl = 'https://www.facebook.com/aeter.sdu/'
+
+        # Any embedded URL should be referenced in the template as '{url}Text here{/url}' where
+        # the middle text will be the text of the hyperlink.
+        # Please note that though this script (as of now) supports multiple URL in the same text,
+        # the destination will always be the same.
+        # 
+        # Any embedded URLs in the template are identified and listed
+        urlTexts = []
+        startIndex = 0
         while True:
-            try:
-                if tryCounter == 3:
+            startIndex = templateText[startIndex:].find('{url}') + startIndex + 5
+            if startIndex != 4:
+                endIndex = templateText[startIndex:].find('{/url}') + startIndex
+                urlTexts.append(templateText[startIndex:endIndex])
+            else:
+                break
 
-                    # If the send function fails thrice False is returned
-                    mailServer.quit()
-                    return False
-                
-                mailServer.sendmail(senderMail, [user.mail], msgRoot.as_string())
-                mailServer.quit()
+        # A connection to the Exchange server is created
+        account = loginExchange()
 
-                # If the mail was succesfully sent True is returned
-                return True
-            except:
-                tryCounter += 1
-                sleep(10)    
+        # Next the user independent part of the message is set up
+        message = Message(account = account,
+                          folder = account.sent,
+                          subject = 'Opgørelse af Æters Ølliste')
+
+        # Looping over all users
+        for user in users:
+
+            # Checking if the user balance is indeed above the debtLimit
+            if not user.balance < debtLimit:
+
+                # A custom QR code and MobilePay URL are generated
+                qrCodePath, mobilePayUrl = generateQR(user, extraAmount = 0, returnUrl = True)
+
+                # A "dict" over the proper (AppRedirect) URLs is created from the custom MP URLs
+                urlSubs = htmlUrls(urlTexts, altUrl, mobilePayUrl)
+
+                # Next the user specific information is substituted in the template
+                # Valid substitutes are (so far): {name}, {sduId}, {qrcode} and {url}TEXT HERE{/url}
+                subList = [('{name}', user.name), ('{sduId}', user.sduId), ('{qrcode}', f'<img src="cid:{qrCodePath[-10:-4]}">')] + urlSubs
+                for key, subst in subList:
+                    messageText = templateText.replace(key, subst)
+
+                # Next the newly created QR code is loaded into a file attachment
+                with open(qrCodePath, 'rb') as qrFile:
+                    qrImage = FileAttachment(name = qrCodePath[-10:-4], content = qrFile.read())
+
+                # The remaining message parameters are set (including attaching the QR code)
+                message.attach(qrImage)
+                message.body = HTMLBody(messageText)
+                message.to_recipients = [Mailbox(email_adress = user.mail)]
+
+                try:
+
+                    # The message is then sent and the user/True tuple is added to the out list if succesfull
+                    message.send_and_save()
+                    usersStatus.append((user, True))
+                except:
+
+                    # If the message is not sent, the user/False tuple is added instead
+                    usersStatus.append((user, False))
+
+            else:
+
+                # If the user has a balance below the debtLimit, the user/False tuple is added to the out list.
+                # (They can be differentiated from failed attempts at sending later on.)
+                usersStatus.append((user, False))
+
+        # In the end, the connection is closed and the tuples list is returned
+        account.protocol.close()
+        return usersStatus
 
 # The usual header, which in this case just passes, as this script is not ment to be run at all.
 def main():
