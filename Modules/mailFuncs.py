@@ -208,7 +208,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         for user in users:
 
             # Checking if the user balance is indeed above the debtLimit
-            if not user.balance < debtLimit:
+            if user.balance > debtLimit:
 
                 # A custom QR code and MobilePay URL are generated
                 qrCodePath, mobilePayUrl = generateQR(user, extraAmount = 0, returnUrl = True)
