@@ -60,7 +60,13 @@ class newUserInitial(standardUI):
     def update(self):
         self.updateMode('sduId')
         self.pwd = ' '
+        if 'newUser' not in self.mainWidget.lastWidgetId:
+            if self.mainWidget.currentUser.cardId is not None:
+                cardId = self.mainWidget.currentUser.cardId
+        else:
+            cardId = None
         self.mainWidget.currentUser = refFuncs.refUserInstance()
+        self.mainWidget.currentUser.cardId = cardId
         self.mainWidget.currentRefUserList = []
         self.mainWidget.transfer = []
 
@@ -294,10 +300,11 @@ class newUserInitial(standardUI):
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('newUserOldUsers')
 
+
 class newUserOldUsers(standardUI):
 
     def __init__(self, mainWidget, parent = None):
-        super(newUserOldUsers, self).__init__(mainWidget, parent)
+        super(newUserOldUsers, self).__init__(mainWidget, parent, backButton = False)
         self.id = 'newUserOldUsers'
 
         self.titleString = 'Please find try to find yourself on the list:'
@@ -392,7 +399,6 @@ class newUserOldUsers(standardUI):
         self.setLayout(grid)
 
     def update(self):
-
         self.refUserList = refFuncs.loadRefUsers()
 
         pageList = []
@@ -500,10 +506,11 @@ class newUserOldUsers(standardUI):
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('newUserBalance')
 
+
 class newUserBalance(standardUI):
 
     def __init__(self, mainWidget, parent = None):
-        super(newUserBalance, self).__init__(mainWidget, parent)
+        super(newUserBalance, self).__init__(mainWidget, parent, backButton = False)
         self.id = 'newUserBalance'
 
         numPad = inputWidgets.inputFrame('numpad', self)
@@ -589,7 +596,7 @@ class newUserBalance(standardUI):
 
 class newUserCard(standardUI):
     def __init__(self, mainWidget, parent = None):
-        super(newUserCard, self).__init__(mainWidget, parent)
+        super(newUserCard, self).__init__(mainWidget, parent, backButton = False)
         self.id = 'newUserCard'
         self.swipeActive = True
 
@@ -643,9 +650,10 @@ class newUserCard(standardUI):
         msg.exec_()
         return
 
+
 class newUserFinal(standardUI):
     def __init__(self, mainWidget, parent = None):
-        super(newUserFinal, self).__init__(mainWidget, parent, False, False)
+        super(newUserFinal, self).__init__(mainWidget, parent, backButton = False, menuButton = False)
         self.id = 'newUserFinal'
 
         titleString = 'Is the following information correct?'

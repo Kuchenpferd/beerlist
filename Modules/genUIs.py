@@ -49,19 +49,23 @@ class standardUI(QtWidgets.QWidget):
         self.cardSequence = ' '
         self.swipeActive = False
 
-        if menuButton:
-            menuBtn = QtWidgets.QPushButton(self)
-            menuBtn.resize(80, 80)
-            menuBtn.move(710, 10)
-            menuBtn.setIcon(QtGui.QIcon(resourceFolder + 'home.svg'))
-            menuBtn.clicked.connect(self.mainMenuDialog)
+        menuBtn = QtWidgets.QPushButton(self)
+        menuBtn.resize(80, 80)
+        menuBtn.move(710, 10)
+        menuBtn.setIcon(QtGui.QIcon(resourceFolder + 'home.svg'))
+        menuBtn.clicked.connect(self.mainMenuDialog)
+        self.menuBtn = menuBtn
 
-        if backButton:
-            menuBtn = QtWidgets.QPushButton(self)
-            menuBtn.resize(80, 80)
-            menuBtn.move(10, 10)
-            menuBtn.setIcon(QtGui.QIcon(resourceFolder + 'left-arrow.svg'))
-            menuBtn.clicked.connect(self.backDialog)
+        menuBtn.setEnabled(menuButton)
+        
+        backBtn = QtWidgets.QPushButton(self)
+        backBtn.resize(80, 80)
+        backBtn.move(10, 10)
+        backBtn.setIcon(QtGui.QIcon(resourceFolder + 'left-arrow.svg'))
+        backBtn.clicked.connect(self.backDialog)
+        self.backBtn = backBtn
+
+        backBtn.setEnabled(backButton)
 
         
     # Modifies the keyPressedEvent to specifically listen for SDU cards
@@ -155,7 +159,6 @@ class standardUI(QtWidgets.QWidget):
         self.cardSequence = ' '
 
 
-
 class mainMenu(standardUI):
 
     def __init__(self, mainWidget, parent = None):
@@ -184,7 +187,7 @@ class mainMenu(standardUI):
         titleLabel = changeFont(titleLabel, 14, True, 'c')
 
         contentLabel = QtWidgets.QLabel(self)
-        contentLabel.setText(f"""To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"!\nTo see your balance, grab beers without your card,\nchange your password or card, please login!\nIf You have any problems, please contact {contact}!""")
+        contentLabel.setText(f"""To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"!\nTo see your balance, grab beers without your card,\nchange your password or card, please login!\nIf you have any problems, please contact {contact}!""")
         contentLabel = changeFont(contentLabel)
 
         grid = QtWidgets.QGridLayout()
@@ -290,6 +293,8 @@ class multiMode(standardUI):
             self.swipeActive = False
             self.enterBtn.setEnabled(True)
 
+        self.mainWidget.transfer.append(self.mainWidget.lastWidgetId)
+
     def emptyLineDialog(self):
 
         # A message box is set up with a text and a button
@@ -338,12 +343,19 @@ class markDone(standardUI):
         self.setLayout(grid)
 
     def update(self):
-        try:
-            units = self.mainWidget.transfer[0]
-        except:
+        if self.mainWidget.lastWidgetId == 'multiMode':
+            units = self.mainWidget.transfer[1]
+            self.mainWidget.lastWidgetId = self.mainWidget.transfer[0]
+            self.mainWidget.transfer.pop()
+        else:
             units = 1
+
+        if self.mainWidget.lastWidgetId == 'loggedIn':
+            self.backBtn.setEnabled(True)
+        elif self.mainWidget.lastWidgetId == 'mainMenu':
+            self.backBtn.setEnabled(False)
+
         amount = units*userFuncs.price
-        self.mainWidget.transfer = []
         
         name = self.mainWidget.currentUser.name
         balance = self.mainWidget.currentUser.balance
@@ -351,7 +363,6 @@ class markDone(standardUI):
         self.contentLabel.setText(f'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!')
 
         
-
 class resetPwd(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(resetPwd, self).__init__(mainWidget, parent)
@@ -556,6 +567,7 @@ class login(standardUI):
         msg.exec_()
         return
 
+
 class loggedIn(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(loggedIn, self).__init__(mainWidget, parent)
@@ -655,6 +667,7 @@ class loggedIn(standardUI):
         elif pressedButton == QtWidgets.QMessageBox.No:
             self.update()
 
+
 class changePwd(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(changePwd, self).__init__(mainWidget, parent)
@@ -734,6 +747,7 @@ class changePwd(standardUI):
         msg.exec_()
         return
 
+
 class changeCard(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(changeCard, self).__init__(mainWidget, parent)
@@ -802,6 +816,7 @@ class changeCard(standardUI):
 
         msg.exec_()
         return
+
 
 class payMode(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -873,6 +888,10 @@ class payMode(standardUI):
         self.qrLabel.setPixmap(qrPixmap)
 
     def update(self):
+        if self.mainWidget.lastWidgetId == 'markDone':
+            self.mainWidget.lastWidgetId = self.mainWidget.transfer[0]
+            transfer = []
+            
         user = self.mainWidget.currentUser
         operator = ' plus'
         self.extraAmount = 50
