@@ -2,24 +2,21 @@
 A GUI for the previous beerlist system using Python 3.6
 
 UIs to do:
- - Standard superclass - Done!
- - Main - Done!
- - Multimode - Done!
- - MarkDone - Done!
- - Reset Password - Done!
- - Login - Done!
- - Logged in - Done!
- - Change Password - Done!
- - Change card - Done!
- - Paymode - Done!
- - New User (sduId, name, mail, pwd) - Done! (Needs testing!)
- - New User (Old Users) - Done! (Needs testing!)
- - New User (balance) - Done! (Needs testing!)
- - New User (new card) - Done! (Needs testing!)
- - New User (Final) - Done! (Needs testing!)
+ - New User (sduId, name, mail, pwd) - Needs testing!
+ - New User (Old Users) - Needs testing!
+ - New User (balance) - Needs testing!
+ - New User (new card) - Needs testing!
+ - New User (Final) - Needs testing!
  
 Other things to do:
- - Redo the mailFuncs.sendMail function - it doesn't work right - Done!
+ - Started testing of the newUser UIs:
+ 	- Having an issue, where an old user doesn't show up again if the user
+ 	  creation is cancelled.
+ 	- Implemented a check of allStaff.csv, along the lines of allStudents.csv,
+ 	  but it needs to be tested thoroughly
+ 	- Still missing a few possibilities.
+ - Implement a "warning" mail to be sent to {contact}, whenever someone creates a user with manual
+   balance.
  - Consider a redo of the 'Back' system, it doesn't seem to be working as intended
  	- Did a first pass of this, needs to be checked
 

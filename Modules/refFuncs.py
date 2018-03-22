@@ -96,6 +96,29 @@ def findName(idString):
                 return name
     return None
 
+# A function to look through the file containing the names and mails of all employees
+# and return the name if the input string matches the mail of sduId of the employee
+def findEmpolyee(idString):
+
+    # First the path to the file is set and then opened and split into rows with a csv reader
+    path = dataFolder + 'allStaff.csv'
+    with open(path, 'r', encoding = 'utf-8') as employFile:
+        rowReader = csv.reader(employFile, dialect = 'excel')
+
+        # Each row is split into relevant variables
+        # and then the sduId and mail are then checked
+        # against the input string. The name is returned if
+        # a match is found, and None is returned if no match is found
+        for row in rowReader:
+            name = row[0]
+            mail = row[1]
+            sduId = mail.split('@')[0]
+            if idString == sduId:
+                return name, mail
+            elif idString == mail:
+                return name, mail
+    return None, None
+
 # The usual header, which in this case just passes, as this script is not ment to be run at all.
 def main():
     pass

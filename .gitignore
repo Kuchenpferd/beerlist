@@ -5,6 +5,7 @@
 /Data/Users/*
 /Data/Statistics/*
 /Data/allStudents.csv
+/Data/refUsers.csv
 /Data/allStaff.csv
 /Modules/__pycache__
 /Modules/__pycache__/*

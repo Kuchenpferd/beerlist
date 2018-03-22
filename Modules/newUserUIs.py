@@ -7,6 +7,7 @@ import userFuncs, refFuncs
 from genUIs import expandButton, swipeLineEdit, standardUI
 from hashlib import sha256
 from math import ceil
+from copy import deepcopy
 from PyQt5 import QtWidgets, QtCore
 
 contact = 'mikkc13'
@@ -60,6 +61,10 @@ class newUserInitial(standardUI):
     def update(self):
         self.updateMode('sduId')
         self.pwd = ' '
+
+        if self.mainWidget.lastWidgetId == 'newUserFinal':
+            self.mainWidget.lastWidgetId = 'mainMenu'
+
         emptyCard = self.mainWidget.currentUser.cardId is not None
         if 'newUser' not in self.mainWidget.lastWidgetId and emptyCard:
             cardId = self.mainWidget.currentUser.cardId
@@ -152,28 +157,24 @@ class newUserInitial(standardUI):
             try:
                 if name is not None:
                     refUser.name = name
-                self.errorDialog(f"""Hi {refUser.name},\n
-                                     You previously had a balance of {refUser.balance}.\n
-                                     Welcome to the new system!""")
+                self.errorDialog(f"""Hi {refUser.name},\nYou previously had a balance of {refUser.balance}.\nWelcome to the new system!""")
                 currentUser.name = refUser.name
                 currentUser.sduId = refUser.sduId
-                currentUser.mail = '{refUser.sduId}@student.sdu.dk'
+                currentUser.mail = f'{refUser.sduId}@student.sdu.dk'
                 currentUser.balance = refUser.balance
                 self.updateMode('firstPwd')
 
             except AttributeError:
                 if name is not None:
-                    self.errorDialog(f"""Hi {name},\n
-                                         We found yor name using your SDU-ID!""")
+                    self.errorDialog(f"""Hi {name},\nWe found your name using your SDU-ID!""")
                     currentUser.name = name
                     currentUser.sduId = sduId
-                    currentUser.mail = '{sduId}@student.sdu.dk'
+                    currentUser.mail = f'{sduId}@student.sdu.dk'
                     self.updateMode('firstPwd')
                 else:
-                    self.errorDialog("""Sorry we couldn't find your name automatically,\n
-                                        Please enter it manually!""")
+                    self.errorDialog("""Sorry we couldn't find your name automatically,\nPlease enter it manually!""")
                     currentUser.sduId = sduId
-                    currentUser.mail = '{sduId}@student.sdu.dk'
+                    currentUser.mail = f'{sduId}@student.sdu.dk'
                     self.updateMode('name')
                 
         elif self.input == 'sduIdAlt':
@@ -190,9 +191,40 @@ class newUserInitial(standardUI):
                 self.updateMode('sduIdAlt')
                 return
 
+            name, mail = refFuncs.findEmpolyee(sduId)
+            if name is None:
+                name = refFuncs.findName(sduId)
             refUser, refUserList = refFuncs.findRefUser(sduId)
             self.mainWidget.currentRefUserList = refUserList
             
+            try:
+                if name is not None:
+                    refUser.name = name
+                    if mail is not None:
+                        refUser.mail = mail
+                    else:
+                        refUser.mail = f'{sduId}@student.sdu.dk'
+                self.errorDialog(f"""Hi {refUser.name},\nYou previously had a balance of {refUser.balance}.\nWelcome to the new system!""")
+                currentUser.name = refUser.name
+                currentUser.sduId = refUser.sduId
+                currentUser.mail = refUser.mail
+                currentUser.balance = refUser.balance
+                self.updateMode('firstPwd')
+
+            except AttributeError:
+                if name is not None:
+                    if mail is None:
+                        mail = f'{sduId}@student.sdu.dk'
+                    self.errorDialog(f"""Hi {name},\nWe found your name using your SDU-ID!""")
+                    currentUser.name = name
+                    currentUser.sduId = sduId
+                    currentUser.mail = mail
+                    self.updateMode('firstPwd')
+                else:
+                    self.errorDialog("""Sorry we couldn't find your mail automatically,\nPlease enter it manually!""")
+                    currentUser.sduId = sduId
+                    self.updateMode('mail')
+
             if refUser is not None:
                 self.errorDialog(f"""Hi {refUser.name},\n
                                      You previously had a balance of {refUser.balance}.\n
@@ -200,8 +232,6 @@ class newUserInitial(standardUI):
                 currentUser.name = refUser.name
                 currentUser.balance = refUser.balance
 
-            currentUser.sduId = refUser.sduId
-            self.updateMode('mail')
         
         elif self.input == 'mail':
 
@@ -260,12 +290,12 @@ class newUserInitial(standardUI):
             
             currentUser.pwd = sha256(pwd.encode()).hexdigest()
 
-            if balance is None:
-                self.balanceDialog()
+            if self.mainWidget.currentUser.balance is None:
+                if self.balanceDialog():
+                    return
                 self.mainWidget.currentUser.balance = 0
-                return
 
-            if cardId is None:
+            if self.mainWidget.currentUser.cardId is None:
                 self.mainWidget.changeUI('newUserCard')
 
             else:
@@ -291,7 +321,7 @@ class newUserInitial(standardUI):
         msg = changeFont(msg, 12, True)
         msg.move(220,180)
         msg.setText('Did you previously have a non-zero balance?')
-        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        msg.setStandardButtons(QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes)
 
         # msg.exec_() will return the value of the pressed button
         pressedButton = msg.exec_()
@@ -299,6 +329,8 @@ class newUserInitial(standardUI):
         # A check to see if the 'Yes' button was pressed, and the UI is then changed
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('newUserOldUsers')
+            return True
+        return False
 
 
 class newUserOldUsers(standardUI):
@@ -311,7 +343,7 @@ class newUserOldUsers(standardUI):
 
         self.pageNo = 0
         self.noItems = 8
-        self.totalPages = 1
+        self.lastPageNo = 0
         self.refUserList = []
         self.pageList = []
 
@@ -378,7 +410,7 @@ class newUserOldUsers(standardUI):
             meBtns.append(expandButton(self))
             meBtns[i].setText('Me!')
             meBtns[i] = changeFont(meBtns[i], 10)
-            meBtns[i].clicked.connect(lambda: self.foundActionDialog('userObjectPlaceholder'))
+            meBtns[i].clicked.connect(lambda: self.foundActionDialog(None))
 
             grid.addWidget(nameLabels[i], i + 2, 0, 1, 2)
             grid.addWidget(mailLabels[i], i + 2, 2, 1, 2)
@@ -403,10 +435,10 @@ class newUserOldUsers(standardUI):
 
         pageList = []
         shortList = []
-        for refUser in refUserList:
+        for refUser in self.refUserList:
 
             if len(shortList) == self.noItems:
-                pageList.append(tmpList)
+                pageList.append(shortList)
                 shortList = []
 
             shortList.append(refUser)
@@ -417,7 +449,7 @@ class newUserOldUsers(standardUI):
             else:
                 break
 
-        self.totalPages = len(pageList)
+        self.lastPageNo = len(pageList) - 1
         self.pageList = pageList
         self.pageNo = 0
 
@@ -426,12 +458,15 @@ class newUserOldUsers(standardUI):
     def changePage(self, direction):
         
         self.pageNo += direction
+        self.nextBtn.clicked.disconnect()
 
-        if self.pageNo < 0:
+        if self.pageNo <= 0:
             self.prevBtn.hide()
-            self.pageNo -= direction
+            self.nextBtn.clicked.connect(lambda: self.changePage(1))
+            if self.pageNo < 0:
+                self.pageNo -= direction
 
-        elif self.pageNo >= self.totalPages:
+        elif self.pageNo >= self.lastPageNo:
             self.nextBtn.setText("I'm not here!?")
             self.nextBtn.clicked.connect(self.notThereDialog)
             self.pageNo -= direction
@@ -450,12 +485,12 @@ class newUserOldUsers(standardUI):
 
         for i in range(self.noItems):
             refUser = shortList[i]
-
             if refUser is not None:
                 nameLabels[i].setText(f'{refUser.name}')
                 mailLabels[i].setText(f'{refUser.mail}')
                 balanceLabels[i].setText(f'{refUser.balance}')
-                meBtns[i].clicked.connect(lambda: self.foundActionDialog(refUser))
+                meBtns[i].clicked.disconnect()
+                meBtns[i].clicked.connect(self.foundActionDialog)
 
                 nameLabels[i].show()
                 mailLabels[i].show()
@@ -467,13 +502,16 @@ class newUserOldUsers(standardUI):
                 balanceLabels[i].hide()
                 meBtns[i].hide()
 
-    def foundActionDialog(self, refUser):
+    def foundActionDialog(self):
+        for i, btn in enumerate(self.meBtns):
+            if btn is self.sender():
+                refUser = self.pageList[self.pageNo][i]
         
         # A message box is set up with a text and two buttons
         msg = QtWidgets.QMessageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
         msg.move(220,180)
-        msg.setText(f'Oh, so you are {refUser.name[0]},\nwith a balance of {refUser.balance}?')
+        msg.setText(f'Oh, so you are {refUser.name.split()[0]},\nwith a balance of {refUser.balance}?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         # msg.exec_() will return the value of the pressed button
@@ -482,7 +520,7 @@ class newUserOldUsers(standardUI):
         # A check to see if the 'Yes' button was pressed, and the UI is then changed
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.currentUser.balance = refUser.balance
-            self.mainWidget.currentRefUserList = self.refUserList.removeWidget(refUser)
+            self.mainWidget.currentRefUserList = self.refUserList.remove(refUser)
 
             if self.mainWidget.currentUser.cardId is None:
                 self.mainWidget.changeUI('newUserCard')
@@ -505,6 +543,8 @@ class newUserOldUsers(standardUI):
         # A check to see if the 'Yes' button was pressed, and the UI is then changed
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('newUserBalance')
+            
+
 
 
 class newUserBalance(standardUI):
@@ -620,7 +660,8 @@ class newUserCard(standardUI):
 
     def update(self):
         super().update()
-        self.titleLabel.setText(self.titleString[0])
+        name = self.mainWidget.currentUser.name
+        self.titleLabel.setText(f'Hi {name}!\nPlease swipe your card!')
         self.input = 0
 
     def swipeAction(self):
@@ -664,11 +705,11 @@ class newUserFinal(standardUI):
         
         yesBtn = expandButton(self)
         yesBtn.setText('Yes!')
-        yesBtn.clicked.connect(lambda: self.mainWidget.changeUI('mainMenu'))
+        yesBtn.clicked.connect(self.yesPressed)
 
         noBtn = expandButton(self)
         noBtn.setText('No!')
-        noBtn.clicked.connect(lambda: self.mainWidget.changeUI('newUserInitial'))
+        noBtn.clicked.connect(self.noPressedDialog)
 
         grid = QtWidgets.QGridLayout(self)
         grid.addWidget(titleLabel, 0, 0, 1, 4)
