@@ -60,9 +60,9 @@ class newUserInitial(standardUI):
     def update(self):
         self.updateMode('sduId')
         self.pwd = ' '
-        if 'newUser' not in self.mainWidget.lastWidgetId:
-            if self.mainWidget.currentUser.cardId is not None:
-                cardId = self.mainWidget.currentUser.cardId
+        emptyCard = self.mainWidget.currentUser.cardId is not None
+        if 'newUser' not in self.mainWidget.lastWidgetId and emptyCard:
+            cardId = self.mainWidget.currentUser.cardId
         else:
             cardId = None
         self.mainWidget.currentUser = refFuncs.refUserInstance()

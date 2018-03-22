@@ -59,6 +59,7 @@ class mainWindow(QtWidgets.QWidget):
         # The main UI is set as the current widget and everything is shown
         self.widgetStack.setCurrentWidget(mainMenuUI)
         self.lastWidgetId = mainMenuUI.id
+        mainMenuUI.update()
         self.show()
 
     # A function that changes the active UI to whichever UI matches idUI

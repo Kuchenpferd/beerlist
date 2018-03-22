@@ -4,6 +4,8 @@
 /Data/debtMail.t
 /Data/Users/*
 /Data/Statistics/*
+/Data/allStudents.csv
+/Data/allStaff.csv
 /Modules/__pycache__
 /Modules/__pycache__/*
 Resources/qrcode.png
