@@ -15,8 +15,6 @@ Other things to do:
  	- Implemented a check of allStaff.csv, along the lines of allStudents.csv,
  	  but it needs to be tested thoroughly
  	- Still missing a few possibilities.
- - Implement a "warning" mail to be sent to {contact}, whenever someone creates a user with manual
-   balance.
  - Consider a redo of the 'Back' system, it doesn't seem to be working as intended
  	- Did a first pass of this, needs to be checked
 

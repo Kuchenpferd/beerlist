@@ -40,10 +40,14 @@ class statInstance(object):
 
 # A function that load the statistics file specific to the 'yearAndMonth' specified
 # (stat files are named by yearAndMonth) and returns a list of stats
-def loadStats(yearAndMonth, stats = []):
+def loadStats(yearAndMonth, stats = None):
 
+    # Make stats an empty list if no stats list is input
+    if stats is None:
+        stats = []
+    
     # First the path is set to the specific file
-    path = dataFolder + 'Statistics/' + yearAndMonth
+    path = dataFolder + 'Stats/' + yearAndMonth
 
     # As the specific stat file might not exist, a try/catch is set up with a FileNotFound catch
     try:
@@ -80,12 +84,12 @@ def saveStats(stats):
     # (per definition; see loadStats) it is fetched from the fist element
     # and the file path is set.
     yearAndMonth = stats[0].yearAndMonth
-    path = dataFolder + 'Statistics/' + yearAndMonth
+    path = dataFolder + 'Stats/' + yearAndMonth
 
     # The stat file is opened and each stat is written  on its own line
     with open(path, 'w', encoding = 'utf-8') as statFile:
         for stat in stats:
-            line = '{} {} {} {}\n'.format(stat.dayOfMonth, stat.units, stat.newUsers, stat.hour)
+            line = f'{stat.dayOfMonth} {stat.units} {stat.newUsers} {stat.hour}\n'
             statFile.write(line)
 
 # A function that updates the overall stats given the statType and units

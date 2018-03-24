@@ -6,7 +6,8 @@ import inputWidgets
 import userFuncs, refFuncs, statFuncs, mailFuncs
 from PyQt5 import QtWidgets, QtCore, QtGui
 from hashlib import sha256
-from time import sleep
+from threading import Timer
+from copy import copy
 
 contact = 'mikkc13'
 workFolder = './../'
@@ -212,7 +213,6 @@ class mainMenu(standardUI):
             if swipedUser is not None:
                 swipedUser.addSome()
                 swipedUser.saveUser()
-                self.mainWidget.transfer.append(1)
                 self.mainWidget.currentUser = swipedUser
                 self.mainWidget.changeUI('markDone')
             else:
@@ -311,6 +311,11 @@ class markDone(standardUI):
     def __init__(self, mainWidget, parent = None):
         super(markDone, self).__init__(mainWidget, parent, False, False)
         self.id = 'markDone'
+        self.swipeActive = True
+        self.swiped = False
+        self.repeat = False
+        self.timers = []
+        self.units = 0
 
         self.contentString = 'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!'
         
@@ -343,7 +348,15 @@ class markDone(standardUI):
         self.setLayout(grid)
 
     def update(self):
-        if self.mainWidget.lastWidgetId == 'multiMode':
+
+        if self.swiped:
+            self.swiped = False
+            self.timer.cancel()
+
+        if self.repeat:
+            self.repeat = False
+            units = self.units + 1
+        elif self.mainWidget.lastWidgetId == 'multiMode':
             units = self.mainWidget.transfer[1]
             self.mainWidget.lastWidgetId = self.mainWidget.transfer[0]
             self.mainWidget.transfer.pop()
@@ -362,6 +375,32 @@ class markDone(standardUI):
         
         self.contentLabel.setText(f'Hi {name}!\n{amount} kr was added to your balance, which is now {balance} kr!\nRemember to pay your debt regularly!')
 
+        self.units = units
+        self.timer = Timer(10, self.returnToMain)
+        self.timer.start()
+
+    def swipeAction(self):
+        if self.cardSequence[0] == 'æ':
+            swipedUser = userFuncs.findUserCard(self.cardSequence)
+            self.swiped = True
+            if swipedUser is not None:
+                swipedUser.addSome()
+                swipedUser.saveUser()
+                if swipedUser.sduId == self.mainWidget.currentUser.sduId:
+                    self.repeat = True
+                self.mainWidget.currentUser = swipedUser
+                self.update()
+            else:
+                self.timer.cancel()
+                self.timer = Timer(10, self.returnToMain)
+                self.timer.start()
+                self.mainWidget.currentUser.cardId = self.cardSequence
+                self.newUserDialog()
+
+    def returnToMain(self):
+        activeId = self.mainWidget.widgetStack.currentWidget().id
+        if activeId == 'markDone':
+            self.mainWidget.changeUI('mainMenu')
         
 class resetPwd(standardUI):
     def __init__(self, mainWidget, parent = None):

@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.append('../Modules/')
+
 import argparse
 import sh, os
 
@@ -8,8 +11,8 @@ GoogleDrivePath = '/home/pi/GoogleDrive/'
 DataPath = '/home/pi/beerlist/Data/'
 
 parser = argparse.ArgumentParser(description='A script to make and upload backups of our data.')
-parser.add_argument('mode', type=str, choices=['users', 'stats', 'party', 'all'])
-parser.add_argument('-clean', action='store_true', default=False)
+parser.add_argument('mode', type=str, choices=['users', 'stats', 'party', 'all'], help='Choose one of these modes to backup up the according files. Note that "party", is simply to have a separate folder for rapid backups during parties.')
+parser.add_argument('-clean', action='store_true', default=False, help='Add this flag to clean the Google Drive folder of the specified update mode. The files for the last month are kept for all but "all-mode", which retains the last 2 months worth of data, and "party-mode", which cleans all data. (In the subfolder)')
 
 def main():
     args = parser.parse_args()
@@ -23,7 +26,8 @@ def main():
 
     if mode == 'party':
         DataSub = 'Users'
-    elif mode = 'all':
+        CleanTime = 0
+    elif mode == 'all':
         DataSub = '../..'
         CleanTime = 2
 
@@ -38,8 +42,7 @@ def main():
 
         sh.cd(GoogleDrivePath)
         output = os.popen(f'grive -u -s {GoogleDriveSub}')
-
-        ## Check ouput for errors before proceeding!!!
+        print(output)
 
         sh.sleep('1s')
 
@@ -57,8 +60,7 @@ def main():
 
         sh.cd(GoogleDrivePath)
         output = os.popen(f'grive -f -s {GoogleDriveSub}')
-
-        ## Check ouput for errors before proceeding!!!
+        print(output)
 
         sh.sleep('1s')
 
@@ -66,8 +68,7 @@ def main():
         sh.rm('-f', f'{GoogleDrivePath}{GoogleDriveSub}/{Mask2}')
 
         output = os.popen(f'grive -s {GoogleDriveSub}')
-
-        ## Check ouput for errors before proceeding!!!
+        print(output)
 
         sh.sleep('1s')
 

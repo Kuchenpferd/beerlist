@@ -89,7 +89,7 @@ def generateQR(user, extraAmount, returnUrl = False):
 
 # A function that handles the login and authentication process with the Exchange server,
 # then returns the 'account' (similar to a 'session') object
-def loginExchange():
+def loginExchange(returnSender=False):
 
     # First all the required mail credentials are loaded from its file and stored in the relevant variables
     path = dataFolder + 'mailCredentials.t'
@@ -104,9 +104,12 @@ def loginExchange():
     credentials = Credentials(username=loginUsername, password=pwdMail)
     config = Configuration(server=serverAdress, credentials=credentials)
     account = Account(primary_smtp_address=senderMail, config=config, autodiscover=False, access_type=DELEGATE)
-    return account
+    if returnSender:
+        return account, senderMail
+    else:
+        return account
 
-# A function to send mails to user. There are two mail types, 'Debt' and 'Pwd'.
+# A function to send mails to user. There are three mail types, 'Debt', 'Pwd' and 'ManBalance'.
 # If the mail type is 'Pwd', a new pwd is created for user and then sent to their mail.
 # A succesfully sent mail returns True and an unsuccesfull returns False.
 #
@@ -114,6 +117,10 @@ def loginExchange():
 # who will each recieve a 'debt' mail if their balance is above the debtLimit.
 # A set of tuples is returned, containg a boolean flag for each user, which is True if their balance
 # is above the debtLimit and succesfully recieved a mail and False in any other case (mail not sent or low balance)
+# 
+# If the mail type is 'ManBalance', the user was created with a manually entered balance. 
+# Any such creation is potentially suspicious and a mail is thus send to the cashier so that he/she
+# can check up on the creation if neccesary.
 def sendMail(user, mailType = 'Debt', debtLimit = 0):
 
     # 'Pwd' mail
@@ -251,6 +258,55 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         # In the end, the connection is closed and the tuples list is returned
         account.protocol.close()
         return usersStatus
+
+    # 'ManBalance' mails
+elif mailType == 'ManBalance':
+
+        # The content of the manual balance mail is created on spot
+        plainText = f"""
+            Hi Cashier,
+
+            A user named {user.name.split()[0]} has just been created with a manual
+            balance input of {user.balance}.
+
+            Further user properties are:
+                Name:       {user.name}
+                Sdu-Id:     {user.sduId}
+                Mail:       {user.mail}
+                User no.:   {user.number}
+                Balance:    {user.balance}
+
+            Best regards,
+            The Beerlist
+            """[1:].replace('            ','')
+
+        # And it is then converted to HTML
+        messageText = plainToHtml(plainText)
+        
+        # A connection is made to the Exchange server
+        account, mail = loginExchange()
+
+        # And a message is created
+        message = Message(account = account,
+                          folder = account.sent,
+                          subject = 'Nyt password til Æters Ølliste',
+                          body = HTMLBody(messageText),
+                          to_recipients = [Mailbox(email_address = mail)])
+
+        try:
+
+            # We then try sending the message
+            message.send_and_save()
+            sent = True
+
+        except:
+
+            # If sending it fails a flag is set to False
+            sent = False
+
+        # The connection is closed and the flag is returned
+        account.protocol.close()
+        return sent
 
 # The usual header, which in this case just passes, as this script is not ment to be run at all.
 def main():

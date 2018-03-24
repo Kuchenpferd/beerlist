@@ -3,7 +3,7 @@
 
 import sys
 import inputWidgets
-import userFuncs, refFuncs
+import userFuncs, refFuncs, mailFuncs
 from genUIs import expandButton, swipeLineEdit, standardUI
 from hashlib import sha256
 from math import ceil
@@ -596,6 +596,8 @@ class newUserBalance(standardUI):
 
         self.mainWidget.currentUser.balance = balance
 
+        self.mainWidget.transfer = 'ManBalance'
+
         if self.mainWidget.currentUser.cardId is None:
             self.mainWidget.changeUI('newUserCard')
 
@@ -756,6 +758,9 @@ class newUserFinal(standardUI):
         refUser = self.mainWidget.currentUser
         user = userFuncs.refToMainUser(refUser)
         user.saveUser()
+        if self.mainWidget.transfer == 'ManBalance':
+            self.mainWidget.transfer = []
+            mailFuncs.sendMail(user, 'ManBalance')
         if refUserList != []:
             refFuncs.saveRefUsers(refUserList)
         self.errorDialog('Great, your user has now been created!\nPlease note that this does not include a first swipe!')
