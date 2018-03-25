@@ -13,7 +13,7 @@ workFolder = './../'
 
 # Additional destinations
 resourceFolder = workFolder + 'Resources/'
-dataFolder = workFolder + 'Data/'
+dataFolder = workFolder + 'Data/Permanent/'
 
 # A minimal function to convert the plain string message to an HTML string
 def plainToHtml(plainString):

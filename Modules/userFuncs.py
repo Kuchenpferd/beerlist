@@ -112,7 +112,11 @@ def loadUser(path):
     return tmpUser
 
 # A function that loads all users and return a list
-def loadUsers(users = []):
+def loadUsers(users = None):
+
+    # If users is not defined make it empty
+    if users is None:
+        users = []
 
     # First a list of files in the user folder is generated
     userFileList = os.listdir(dataFolder + 'Users/')
@@ -163,8 +167,8 @@ def saveUsers(users):
 # A function that takes a string and looks through all users in 'users'
 # to see if any of their cardIds match the string.
 # It then returns that user; returns None if no match is found.
-def findUserCard(cardString, users = []):
-    if users == []:
+def findUserCard(cardString, users = None):
+    if users is None:
         users = loadUsers()
     for user in users:
         if cardString == user.cardId:
@@ -173,8 +177,8 @@ def findUserCard(cardString, users = []):
 
 # A function very similar to the previous one, only it checks if the input string
 # matches any sduId or mail of the users.
-def findUserNoCard(inputString, users = []):
-    if users == []:
+def findUserNoCard(inputString, users = None):
+    if users is None:
         users = loadUsers()
     for user in users:
         if inputString == user.sduId:

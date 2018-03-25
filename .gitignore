@@ -1,12 +1,6 @@
-# Mail credential file
-/Data/mailCredentials.t
-/Data/newPwdMail.t
-/Data/debtMail.t
+/Data/Permanent/*
 /Data/Users/*
 /Data/Stats/*
-/Data/allStudents.csv
-/Data/refUsers.csv
-/Data/allStaff.csv
 /Modules/__pycache__
 /Modules/__pycache__/*
-Resources/qrcode.png
+/Resources/qrcode.png

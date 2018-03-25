@@ -28,10 +28,14 @@ class refUserInstance(object):
         self.cardId = cardId
 
 # A function that loads all reference users and returns them in a list 'refUsers'
-def loadRefUsers(refUsers = []):
+def loadRefUsers(refUsers = None):
     
+    # If the input list is None, set it to be empty
+    if refUsers is None:
+        refUsers = []
+
     # First the path is determined
-    path = dataFolder + 'refUsers.csv'
+    path = dataFolder + 'Users/refUsers.csv'
 
     # The '.csv' file is opened using a csv reader
     with open(path, 'r', encoding = 'utf-8') as refUserFile:
@@ -56,7 +60,7 @@ def loadRefUsers(refUsers = []):
 
 # A function that takes a list of reference users and writes it to the relevant file
 def saveRefUsers(refUsers):
-    path = dataFolder + 'refUsers.csv'
+    path = dataFolder + 'User/refUsers.csv'
     with open(path, 'w', newline = '', encoding = 'utf-8') as refUserFile:
         rowWriter = csv.writer(refUserFile, dialect = 'excel')
 
@@ -78,7 +82,7 @@ def findRefUser(inputString, refUsers = []):
 def findName(idString):
 
     # First the path to the file is set and then opened and split into rows with a csv reader
-    path = dataFolder + 'allStudents.csv'
+    path = dataFolder + 'Permanent/allStudents.csv'
     with open(path, 'r', encoding = 'utf-8') as studentFile:
         rowReader = csv.reader(studentFile, dialect = 'excel')
 
@@ -101,7 +105,7 @@ def findName(idString):
 def findEmpolyee(idString):
 
     # First the path to the file is set and then opened and split into rows with a csv reader
-    path = dataFolder + 'allStaff.csv'
+    path = dataFolder + 'Permanent/allStaff.csv'
     with open(path, 'r', encoding = 'utf-8') as employFile:
         rowReader = csv.reader(employFile, dialect = 'excel')
 
