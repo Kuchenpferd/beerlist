@@ -745,7 +745,7 @@ class changePwd(standardUI):
         if self.input == 0:
             inputPwd = self.inputEdit.text()
 
-            if len(inputPwd) >= 4:
+            if len(inputPwd) >= 6:
                 self.pwd = sha256(inputPwd.encode()).hexdigest()
             else:
                 self.errorDialog()
@@ -778,7 +778,7 @@ class changePwd(standardUI):
         msg = changeFont(msg, 12, True)
         msg.move(280,100)
         if self.input == 0:
-            msg.setText("The password should be at least\n4 characters long!")
+            msg.setText("The password should be at least\n6 characters long!")
         else:
             msg.setText("Sorry, but the two passwords didn't match!\nPlease try again!")
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)

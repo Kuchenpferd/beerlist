@@ -19,7 +19,7 @@ def changeFont(someLabel, size = 10, bold = False, align = 'l'):
         alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignRight)
         
     newFont = someLabel.font()
-    newFont.setPointSize(size)
+    newFont.setPointSize(size + 4)
     newFont.setBold(bold)
     someLabel.setFont(newFont)
     

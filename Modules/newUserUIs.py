@@ -262,7 +262,7 @@ class newUserInitial(standardUI):
 
             self.pwd = self.inputEdit.text()
 
-            if len(self.pwd) < 1:
+            if len(self.pwd) < 6:
                 self.errorDialog('Please use at least six characters!')
                 self.updateMode('firstPwd')
             elif ' ' in self.pwd:
@@ -334,7 +334,7 @@ class newUserOldUsers(standardUI):
         self.titleString = 'Please find try to find yourself on the list:'
 
         self.pageNo = 0
-        self.noItems = 8
+        self.noItems = 7
         self.lastPageNo = 0
         self.refUserList = []
         self.pageList = []
@@ -550,7 +550,7 @@ class newUserBalance(standardUI):
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
-        self.titleString = 'Please enter your current balance:\n(Sign will be added later)'
+        self.titleString = 'Please enter your current balance: (Sign will be added later)'
         
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString)
@@ -599,7 +599,7 @@ class newUserBalance(standardUI):
             msg = QtWidgets.QMessageBox(self.mainWidget)
             msg = changeFont(msg, 12, True)
             msg.move(220,180)
-            msg.setText('Was the sign of your balance "+" (Yes) or "-" (No)')
+            msg.setText('Was the sign of your balance "-" (No) or "+" (Yes)')
             msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
             # msg.exec_() will return the value of the pressed button

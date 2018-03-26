@@ -145,6 +145,8 @@ def main():
                         user.saveUser()
                         plog('User saved.\n')
                     else:
+                        if user.balance == 0:
+                            refUsers.remove(user)
                         refFuncs.saveRefUsers(refUsers)
                         plog('Reference users saved.\n')
                     totalChanges += 1

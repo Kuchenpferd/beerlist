@@ -149,10 +149,11 @@ def findNewUserNumber():
     while True:
         flag = True
         for userFile in userFileList:
-            userNumber = int(userFile.split('user_')[1])
-            if userNumber == newUserNumber:
-                flag = False
-                break
+            if 'user_' in userFile:
+                userNumber = int(userFile.split('user_')[1])
+                if userNumber == newUserNumber:
+                    flag = False
+                    break
         if flag:
             break
         newUserNumber += 1

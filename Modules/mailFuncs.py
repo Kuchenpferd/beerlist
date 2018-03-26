@@ -8,7 +8,7 @@ from string import ascii_letters, digits
 from random import randrange
 from exchangelib import DELEGATE, Account, Credentials, Configuration, Message, Mailbox, FileAttachment, HTMLBody
 
-# Path to determine the data folder (Should be changed to './Data/', when imported)
+# Path to determine the main folder
 workFolder = '../'
 
 # Additional destinations
@@ -284,7 +284,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         messageText = plainToHtml(plainText)
         
         # A connection is made to the Exchange server
-        account, mail = loginExchange()
+        account, mail = loginExchange(returnSender=True)
 
         # And a message is created
         message = Message(account = account,

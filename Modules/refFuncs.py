@@ -5,7 +5,7 @@ import os
 import csv
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
-workFolder = './../'
+workFolder = '../'
 
 # Additional destinations
 dataFolder = workFolder + 'Data/'
@@ -66,7 +66,7 @@ def loadRefUsers(refUsers = None):
 
 # A function that takes a list of reference users and writes it to the relevant file
 def saveRefUsers(refUsers):
-    path = dataFolder + 'User/refUsers.csv'
+    path = dataFolder + 'Users/refUsers.csv'
     with open(path, 'w', newline = '', encoding = 'utf-8') as refUserFile:
         rowWriter = csv.writer(refUserFile, dialect = 'excel')
 

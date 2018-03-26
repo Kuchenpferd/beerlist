@@ -97,6 +97,8 @@ def main():
                                     if userType == 'Ord':
                                         user.saveUser()
                                     else:
+                                        if user.balance == 0:
+                                            refUsers.remove(user)
                                         refFuncs.saveRefUsers(users)
                                     plog('\n    Okay, changes saved.\n')
                                     totalChanges += 1
