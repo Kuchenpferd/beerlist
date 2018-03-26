@@ -15,21 +15,36 @@ class statInstance(object):
 
     # The properties of the stat instance is initialized, with the capability of creating
     # a totally empty stat with no input arguments
-    def __init__(self, units = 0, newUsers = 0, yearAndMonth = 1, dayOfMonth = 1, hour = 1):
+    def __init__(self, units = 0, newUsers = 0, yearAndMonth = 1, dayOfMonth = 1, hour = 1, dateTime = None):
 
-        # Once again, we know that we need to determine the "standard" properties if
-        # yearAndMonth = 1
-        if yearAndMonth == 1:
-            yearAndMonth = date.today().strftime('%y-%m')
-            dayOfMonth = date.today().day
-            hour = datetime.now().hour
+        # The dateTime parameter is an alternative way of setting up an instance
+        if dateTime is None:
+            # Once again, we know that we need to determine the "standard" properties if
+            # yearAndMonth = 1
+            if yearAndMonth == 1:
+                yearAndMonth = date.today().strftime('%y-%m')
+                dayOfMonth = date.today().day
+                hour = datetime.now().hour
 
-        # All arguments are then turned into properties of the statistic
+            # All arguments which depend on the dateTime parameter are then turned into properties of the statistic
+            self.yearAndMonth = yearAndMonth
+            self.dayOfMonth = int(dayOfMonth)
+            self.hour = int(hour)
+            self.dateTime = datetime('20' + yearAndMonth.split('-')[0], yearAndMonth.split('-')[1], dayOfMonth, int(hour))
+
+        else:
+            # All arguments which depend on the dateTime parameter are then turned into properties of the statistic
+            self.yearAndMonth = dateTime.strftime('%y-%m')
+            self.dayOfMonth = dateTime.day
+            self.hour = dateTime.hour
+            self.dateTime = dateTime
+
+        # The remaining arguments are the turned into parameters
         self.units = int(units)
         self.newUsers = int(newUsers)
-        self.yearAndMonth = yearAndMonth
-        self.dayOfMonth = int(dayOfMonth)
-        self.hour = int(hour)
+        self.week = self.dateTime.isocalendar()[1]
+        self.dayOfWeek = self.dateTime.isocalendar[2]
+
 
     # Internal function, that adds 'units' to the relevant 'statType' property
     def addSome(self, statType, units = 1):
@@ -75,6 +90,25 @@ def loadStats(yearAndMonth, stats = None):
         stats.append(tmpStat)
         
     # At last the list is returned
+    return stats
+
+# A function that load all available stats into a single list.
+# This is mostly needed for the makeStats.py tool
+def loadAllStats(stats = None):
+
+    # Make stats an empty list if no stats list is input
+    if stats is None:
+        stats = []
+
+    # A list of all the stats files
+    statsFileList = os.listdir(dataFolder + 'Stats/')
+
+    # For each file, append the contained stats to the current list
+    for statsFilePath in statsFileList:
+        yearAndMonth = statsFilePath[-5:]
+        stats = loadStats(yearAndMonth, stats)
+
+    # Finally return the stats list
     return stats
 
 # A function that writes the elements of the list 'stats'
