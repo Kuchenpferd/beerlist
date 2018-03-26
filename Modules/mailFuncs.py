@@ -260,7 +260,7 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         return usersStatus
 
     # 'ManBalance' mails
-elif mailType == 'ManBalance':
+    elif mailType == 'ManBalance':
 
         # The content of the manual balance mail is created on spot
         plainText = f"""
