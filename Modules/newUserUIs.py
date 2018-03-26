@@ -224,14 +224,6 @@ class newUserInitial(standardUI):
                     self.errorDialog("""Sorry we couldn't find your mail automatically,\nPlease enter it manually!""")
                     currentUser.sduId = sduId
                     self.updateMode('mail')
-
-            if refUser is not None:
-                self.errorDialog(f"""Hi {refUser.name},\n
-                                     You previously had a balance of {refUser.balance}.\n
-                                     Welcome to the new system!""")
-                currentUser.name = refUser.name
-                currentUser.balance = refUser.balance
-
         
         elif self.input == 'mail':
 
@@ -256,11 +248,11 @@ class newUserInitial(standardUI):
 
             if name is '':
                 self.errorDialog('The prompt appears to be empty!')
-                self.updateMode('firstPwd')
+                self.updateMode('name')
 
             elif len(name.split()) < 2:
                 self.errorDialog('You need to enter at least two names!')
-                self.updateMode('firstPwd')
+                self.updateMode('name')
 
             else:
                 currentUser.name = name
@@ -270,7 +262,7 @@ class newUserInitial(standardUI):
 
             self.pwd = self.inputEdit.text()
 
-            if len(self.pwd) < 6:
+            if len(self.pwd) < 1:
                 self.errorDialog('Please use at least six characters!')
                 self.updateMode('firstPwd')
             elif ' ' in self.pwd:
@@ -283,7 +275,7 @@ class newUserInitial(standardUI):
 
             pwd = self.inputEdit.text()
 
-            if pwd != self.pwd:
+            if pwd != self.pwd: 
                 self.errorDialog("The passwords doesn't match!\nPlease try again!")
                 self.updateMode('firstPwd')
                 return
@@ -544,8 +536,6 @@ class newUserOldUsers(standardUI):
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.changeUI('newUserBalance')
             
-
-
 
 class newUserBalance(standardUI):
 

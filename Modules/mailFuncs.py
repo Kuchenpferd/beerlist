@@ -9,7 +9,7 @@ from random import randrange
 from exchangelib import DELEGATE, Account, Credentials, Configuration, Message, Mailbox, FileAttachment, HTMLBody
 
 # Path to determine the data folder (Should be changed to './Data/', when imported)
-workFolder = './../'
+workFolder = '../'
 
 # Additional destinations
 resourceFolder = workFolder + 'Resources/'

@@ -187,6 +187,7 @@ def findUserNoCard(inputString, users = None):
             return user
     return None
 
+# A function to determine if a sduId is valid using regex'es
 def validSduId(sduId):
     valid = re.match('[a-z]{5}[0-9]{2}',sduId)
     if valid is not None:
@@ -196,6 +197,15 @@ def validSduId(sduId):
     if valid is not None:
         if valid.group() == sduId:
             return True
+    ## Approximately 150 student Ids in about 42000
+    ## do not follow the above two conventions, but instead
+    ## the one below.
+    ## To prevent people from typing wrong, it will be left
+    ## commented out for now.
+    # valid = re.match('[a-z]{4}[0-9]{2}',sduId)
+    # if valid is not None:
+    #     if valid.group() == sduId:
+    #         return True
     return False
 
 def searchUsers(inString, users = None):

@@ -30,7 +30,7 @@ class statInstance(object):
             self.yearAndMonth = yearAndMonth
             self.dayOfMonth = int(dayOfMonth)
             self.hour = int(hour)
-            self.dateTime = datetime('20' + yearAndMonth.split('-')[0], yearAndMonth.split('-')[1], dayOfMonth, int(hour))
+            self.dateTime = datetime(int('20' + yearAndMonth.split('-')[0]), int(yearAndMonth.split('-')[1]), int(dayOfMonth), int(hour))
 
         else:
             # All arguments which depend on the dateTime parameter are then turned into properties of the statistic
@@ -43,7 +43,7 @@ class statInstance(object):
         self.units = int(units)
         self.newUsers = int(newUsers)
         self.week = self.dateTime.isocalendar()[1]
-        self.dayOfWeek = self.dateTime.isocalendar[2]
+        self.dayOfWeek = self.dateTime.isocalendar()[2]
 
 
     # Internal function, that adds 'units' to the relevant 'statType' property
