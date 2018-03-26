@@ -22,10 +22,16 @@ class refUserInstance(object):
         if mail is not None:
             self.sduId = mail.split('@')[0]
         else:
-            self.sduId = None
+            self.sduIds = None
         self.balance = balance
         self.pwd = pwd
         self.cardId = cardId
+
+    # Internal function to handle payments
+    def paySome(self, amount):
+
+        # The balance is subtracted the paid amount
+        self.balance -= amount
 
 # A function that loads all reference users and returns them in a list 'refUsers'
 def loadRefUsers(refUsers = None):
@@ -68,14 +74,25 @@ def saveRefUsers(refUsers):
         for refUser in refUsers:
             rowWriter.writerow([refUser.name, refUser.mail, str(refUser.balance)])
 
-def findRefUser(inputString, refUsers = []):
-    if refUsers == []:
+def findRefUser(inputString, refUsers = None):
+    if refUsers == None:
         refUsers = loadRefUsers()
     for refUser in refUsers:
         if inputString == refUser.sduId:
             refUsers = refUsers.remove(refUser)
             return refUser, refUsers
     return None, refUsers
+
+def searchRefUsers(inString, refUsers = None):
+    inString = inString.lower()
+    if refUsers == None:
+        refUsers = loadRefUsers()
+    matchIdxs = []
+    for i, refUser in enumerate(refUsers):
+        if inString in refUser.name.lower() or inString in refUser.mail.lower():
+            matchIdxs.append(i)
+    return matchIdxs, refUsers
+
 
 # A function to look through the file containing the names and mails of all students
 # and return the name if the input string matches the mail of sduId of the student

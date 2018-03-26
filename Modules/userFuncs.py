@@ -198,6 +198,16 @@ def validSduId(sduId):
             return True
     return False
 
+def searchUsers(inString, users = None):
+    inString = inString.lower()
+    if users == None:
+        users = loadRefUsers()
+    matchUsers = []
+    for user in users:
+        if inString in user.name.lower() or inString in user.sduId.lower() or inString in user.mail.lower():
+            matchUsers.append(user)
+    return matchUsers
+
 def refToMainUser(refUser):
     mainUser = userInstance(refUser.name, refUser.mail, refUser.sduId, refUser.pwd, refUser.balance)
     return mainUser
