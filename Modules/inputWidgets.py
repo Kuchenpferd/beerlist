@@ -45,7 +45,7 @@ class keyButton(QtWidgets.QPushButton):
         self = changeFont(self, 10)
 
     def onClick(self):
-        None
+        pass
         
 # Basically a cleaned version of the ./minimal_keypad.py button,
 # please refer there for further detail
@@ -67,12 +67,40 @@ class modKeyButton(keyButton):
         super(modKeyButton, self).__init__(parent)
         
         self.setCheckable(True)
+        self.labelText = labelText
+        self.parent = parent
+        self.affKeys = None
 
         # Uses an icon for shift instead of a text label
         if labelText == 'Shift':
             self.setIcon(QtGui.QIcon(resourceFolder + 'shift-arrow.svg'))
-        else:
+        elif labelText == 'Alt':
             self.setText(labelText)
+
+    # On click the mod button will change the text of the affected keys
+    def onClick(self):
+
+        # On first click we determine which buttons will be affected (on a set of lists from the parent)
+        if self.affKeys is None:
+            btnNames = zip(self.parent.btnNames[0], self.parent.btnNames[1])
+            affKeys = []
+            self.affKeys = affKeys
+            for btn, name in btnNames:
+                if self.labelText == 'Shift' and len(name) == 1:
+                    affKeys.append((btn, name))
+                elif self.labelText == 'Alt' and len(name) == 2:
+                    affKeys.append((btn, f'{name[0]} / {name[1]}'))
+
+        # Every affected button gets a new text according to the type of mod this button is
+        for btn, name in self.affKeys:
+            if self.isChecked():
+                if self.labelText == 'Shift':
+                    btn.setText(name.title())
+                elif self.labelText == 'Alt':
+                    btn.setText(name[::-1])
+            else:
+                btn.setText(name)
+
 
 # Class for alph keyboard, which should be passed the setup specific shift and alt mod button.
 # Can thus emit 4 different symbols (primary low/cap and secondary low/cap)
@@ -147,6 +175,7 @@ class inputFrame(QtWidgets.QFrame):
         shButton = modKeyButton('Shift', self)
         altButton = modKeyButton('Alt', self)
 
+        buttons = []
         
         for position, name in zip(positions, names):
 
@@ -186,8 +215,14 @@ class inputFrame(QtWidgets.QFrame):
                 btn = boardKeyButton(name, shButton, altButton, self)
                 grid.addWidget(btn, *position)
 
+            if name != '':
+                buttons.append(btn)
+
         # Finally the layout is connected to the frame
         self.setLayout(grid)
+
+        # The buttons and thier names are connected to the frame (so that mod buttons can access those lists)
+        self.btnNames = (buttons, names)
 
     # Sets up the numpad layout including geometry and size
     def setupNumpad(self):

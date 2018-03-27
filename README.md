@@ -5,9 +5,6 @@ Should be done!
 
 Could probably do with more testing, especially the Payment tools.
 
-All dialogue box positions should be checked/recalibrated to reflect the
-limited screen resolution of the Pi.
-
 Still needs shell wrappers and a cleanup in the main directory.
 
 Dependencies (Everything can now be installed using PIP3): 

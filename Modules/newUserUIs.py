@@ -4,7 +4,7 @@
 import sys
 import inputWidgets
 import userFuncs, refFuncs, mailFuncs
-from genUIs import expandButton, swipeLineEdit, standardUI
+from genUIs import expandButton, swipeLineEdit, messageBox, standardUI
 from hashlib import sha256
 from math import ceil
 from copy import deepcopy
@@ -15,10 +15,6 @@ workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
 
 changeFont = inputWidgets.changeFont
-
-# List of UI ids:
-uiIdList = ['newUserInitial', 'newUserCard', 'newUserOldUsers',
-            'newUserBalance', 'newUserFinal']
 
 class newUserInitial(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -296,9 +292,8 @@ class newUserInitial(standardUI):
     def errorDialog(self, errorText):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         msg.setText(errorText)
        
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -309,9 +304,8 @@ class newUserInitial(standardUI):
     def balanceDialog(self):
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(220,180)
         msg.setText('Did you previously have a non-zero balance?')
         msg.setStandardButtons(QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes)
 
@@ -500,9 +494,8 @@ class newUserOldUsers(standardUI):
                 refUser = self.pageList[self.pageNo][i]
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(220,180)
         msg.setText(f'Oh, so you are {refUser.name.split()[0]},\nwith a balance of {refUser.balance}?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -523,9 +516,8 @@ class newUserOldUsers(standardUI):
     def notThereDialog(self):
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(220,180)
         msg.setText("Sorry, you will have to enter it manually then.\nAre you sure you're not there?")
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -596,9 +588,8 @@ class newUserBalance(standardUI):
 
     def enterActionDialog(self):
         # A message box is set up with a text and two buttons
-            msg = QtWidgets.QMessageBox(self.mainWidget)
+            msg = messageBox(self.mainWidget)
             msg = changeFont(msg, 12, True)
-            msg.move(220,180)
             msg.setText('Was the sign of your balance "-" (No) or "+" (Yes)')
             msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -615,9 +606,8 @@ class newUserBalance(standardUI):
     def errorDialog(self, errorText):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         msg.setText(errorText)
        
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -673,9 +663,8 @@ class newUserCard(standardUI):
     def errorDialog(self, errorText):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         msg.setText(errorText)
        
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -758,9 +747,8 @@ class newUserFinal(standardUI):
 
     def noPressedDialog(self):
         # A message box is set up with a text and two buttons
-            msg = QtWidgets.QMessageBox(self.mainWidget)
+            msg = messageBox(self.mainWidget)
             msg = changeFont(msg, 12, True)
-            msg.move(220,180)
             msg.setText('Are you sure?\nYou will have to start over!')
             msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -774,9 +762,8 @@ class newUserFinal(standardUI):
     def errorDialog(self, errorText):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         msg.setText(errorText)
        
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)

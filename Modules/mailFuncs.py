@@ -48,7 +48,7 @@ def htmlUrls(urlTexts, altUrl, mobilePayUrl):
     return urlSubs
 
 # A small function that generates a new random password
-def genNewPwd(pwdLen = 8):
+def genNewPwd(pwdLen = 6):
 
     # The character is made up from all ASCII letters and the digits (imported from 'string')
     # The length of the list is also found

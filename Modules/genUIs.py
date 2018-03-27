@@ -37,7 +37,13 @@ class swipeLineEdit(QtWidgets.QLineEdit):
             if self.parent.cardSequence[0] != 'æ':
                 super(swipeLineEdit, self).keyPressEvent(event)
         self.parent.keyPressEvent(event)
-    
+
+class messageBox(QtWidgets.QMessageBox):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        pal = self.palette()
+        pal.setColor(QtGui.QPalette.Background, QtGui.QColor(217, 217, 217))
+        self.setPalette(pal)
 
 # A super class for the standard UI
 class standardUI(QtWidgets.QWidget):
@@ -91,9 +97,8 @@ class standardUI(QtWidgets.QWidget):
     def mainMenuDialog(self):
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(220,180)
         msg.setText('Do you want to return to the main menu?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -111,9 +116,8 @@ class standardUI(QtWidgets.QWidget):
     def backDialog(self):
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(220,180)
         msg.setText('Do you want to return to previous screen?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -131,9 +135,8 @@ class standardUI(QtWidgets.QWidget):
     def newUserDialog(self, update = True):
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.move(260,150)
         msg.setText('Unknown card swiped!\n\nDo you wish to create a new user?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -298,9 +301,8 @@ class multiMode(standardUI):
     def emptyLineDialog(self):
 
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         msg.setText('The input line seems empty!')
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
@@ -415,11 +417,11 @@ class resetPwd(standardUI):
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
-        titleString = 'Please enter your SDU-ID or swipe your card to reset\nyour password:'
+        titleString = 'Please enter SDU-ID or swipe card to reset password:'
 
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(titleString)
-        titleLabel = changeFont(titleLabel, 11.5, True, 'c')
+        titleLabel = changeFont(titleLabel, 12, True, 'c')
 
         inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
@@ -457,9 +459,8 @@ class resetPwd(standardUI):
     def newPwdDialog(self, user):
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.move(260,150)
         msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to reset your password?""")
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -478,9 +479,8 @@ class resetPwd(standardUI):
     def doneDialog(self):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         msg.setText('Okay, we have sent a mail with\nyour new password!')
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
@@ -490,9 +490,8 @@ class resetPwd(standardUI):
     def errorDialog(self):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         msg.setText("Sorry, but we couldn't find your SDU-ID!\nPlease try again.")
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
@@ -592,9 +591,8 @@ class login(standardUI):
     def errorDialog(self):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         if self.input == 0:
             msg.setText("Sorry, but we couldn't find your SDU-ID!\nPlease try again.")
         elif self.input == 1 and self.count != 3:
@@ -667,9 +665,8 @@ class loggedIn(standardUI):
         user = self.mainWidget.currentUser
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.move(260,150)
         msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to change your password?""")
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -689,9 +686,8 @@ class loggedIn(standardUI):
         user = self.mainWidget.currentUser
         
         # A message box is set up with a text and two buttons
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.move(260,150)
         msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to change your card?""")
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
@@ -774,9 +770,8 @@ class changePwd(standardUI):
     def errorDialog(self):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         if self.input == 0:
             msg.setText("The password should be at least\n6 characters long!")
         else:
@@ -844,9 +839,8 @@ class changeCard(standardUI):
     def errorDialog(self):
         
         # A message box is set up with a text and a button
-        msg = QtWidgets.QMessageBox(self.mainWidget)
+        msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.move(280,100)
         if self.input == 0:
             msg.setText("Your card was not recognized as\na student card!")
         else:

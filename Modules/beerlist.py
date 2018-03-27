@@ -14,7 +14,7 @@ class mainWindow(QtWidgets.QWidget):
         super(mainWindow, self).__init__(parent)
 
         # The geometry is set up
-        self.setGeometry(50,50,800,480)
+        self.setGeometry(0,0,800,480)
 
         self.currentUser = refFuncs.refUserInstance()
         self.currentRefUserList = []
