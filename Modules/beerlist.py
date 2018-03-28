@@ -6,6 +6,7 @@ from PyQt5 import QtWidgets
 import genUIs
 import newUserUIs
 import refFuncs
+from threading import Timer
         
 # The class for the main window, which is the main container of everything
 class mainWindow(QtWidgets.QWidget):
@@ -19,6 +20,7 @@ class mainWindow(QtWidgets.QWidget):
         self.currentUser = refFuncs.refUserInstance()
         self.currentRefUserList = []
         self.transfer = []
+        self.mainTimer = Timer(300, lambda: self.changeUI('mainMenu'))
 
         # An instance of stacked widget is set up
         self.widgetStack = QtWidgets.QStackedWidget(self)
@@ -68,6 +70,18 @@ class mainWindow(QtWidgets.QWidget):
         if idUI == 'back':
             idUI = self.lastWidgetId
         self.lastWidgetId = self.widgetStack.currentWidget().id
+
+        # Every time the UI is changed a timer is restarted that returns
+        # to the main UI after 300 sec (5 min). If the UI is changed TO the main menu
+        # the timer is simply disabled.
+        if idUI == 'mainMenu2':
+            idUI = 'mainMenu'
+        elif idUI != 'mainMenu' and self.lastWidgetId != 'markDone':
+            self.mainTimer.cancel()
+            if idUI != 'mainMenu':
+                self.mainTimer = Timer(300, lambda: self.changeUI('mainMenu2'))
+                self.mainTimer.start()
+        
 
         # Finding the UI matching idUI
         for indexUI in range(0,self.widgetStack.count()):

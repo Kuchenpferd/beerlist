@@ -351,6 +351,8 @@ class markDone(standardUI):
 
     def update(self):
 
+        self.mainWidget.mainTimer.cancel()
+
         if self.swiped:
             self.swiped = False
             self.timer.cancel()
