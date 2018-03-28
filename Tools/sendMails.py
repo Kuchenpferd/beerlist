@@ -30,6 +30,7 @@ def sendMails(debtLimit=None):
             if not sent:
                 print(f'Failed to sent mail to {user.sduId}')
             else:
+                print(f'Sent mail to {user.sduId}')
                 mailSent += 1
         print(f'Sent {mailSent} of {len(usersTup)} mails to {userType[i]} users.')
 

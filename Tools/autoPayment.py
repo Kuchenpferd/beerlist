@@ -4,7 +4,7 @@
 import sh
 import csv
 import backup
-from datetime import date
+from datetime import datetime
 import sys
 sys.path.append('../Modules/')
 
@@ -15,6 +15,7 @@ indexDicts = {'MobPay':{'msg':9, 'amount':3}, 'NetBank':{'msg':2, 'amount':4}}
 typeDict = {'Ord':['-Orig.csv', '-Tmp.csv'], 'Ref':['-Tmp.csv', '-AutoFinal.csv']}
 logPath = payFolder + 'payment.log'
 makeLog = True
+date = datetime.now()
 
 def plog(string, printIt=True):
     if makeLog:
@@ -31,19 +32,19 @@ def intF(str):
     return int(str.replace('.','').replace(',','.'))
 
 def main():
-    plog('\nAuto payment log ' + sh.date('+%y.%m.%d %H:%M'))
+    plog('\nAuto payment log ' + date.strftime('%y.%m.%d %H:%M'))
     totalChanges = 0
     totalPaidAmount = 0
     try:
         plog('Trying to archive the previous payment files.')
-        archiveFolder = payFolder + 'Archive/' + sh.date('+%y.%m.%d')
+        archiveFolder = payFolder + 'Archive/' + date.strftime('%y.%m.%d')
         count = 0
         while True:
             try:
                 sh.mkdir(archiveFolder)
                 break
             except:
-                archiveFolder += str(count)
+                archiveFolder += f'-{count}'
                 count += 1
 
         sh.mv(payFolder + '*.csv', archiveFolder)
