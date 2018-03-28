@@ -162,10 +162,10 @@ class inputFrame(QtWidgets.QFrame):
         grid = QtWidgets.QGridLayout(self)
 
         # The keyboard key layout
-        names =    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Alt',
+        names =    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-',
                     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'å',
                     'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'æ', 'ø',
-                    'z', 'x', 'c', 'v', 'b', 'n', 'm', ".'", '-@', 'enter', '',
+                    'z', 'x', 'c', 'v', 'b', 'n', 'm', ".", '@', 'enter', '',
                     'Shift', '', 'space', '', '', '', '', 'backspace', '', '', '']
 
         # List of key positions
@@ -174,6 +174,7 @@ class inputFrame(QtWidgets.QFrame):
         # Setting up modifier buttons prior to instanciating buttons
         shButton = modKeyButton('Shift', self)
         altButton = modKeyButton('Alt', self)
+        altButton.hide()
 
         buttons = []
         
