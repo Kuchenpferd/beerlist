@@ -1,6 +1,8 @@
 /Data/Permanent/*
+/Data/Payment/*.*
+/Data/Payment/Archive/!(*-Templ.csv)
 /Data/Users/*
 /Data/Stats/*
 /Modules/__pycache__
-/Modules/__pycache__/*
+/Tools/__pycache__
 /Resources/qrcode.png

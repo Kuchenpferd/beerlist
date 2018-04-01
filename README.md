@@ -3,10 +3,6 @@ A GUI for the previous beerlist system using Python 3.6
 
 Should be done!
 
-Could probably do with more testing, especially the Payment tools.
-
-Still needs shell wrappers and a cleanup in the main directory.
-
 Dependencies (Everything can now be installed using PIP3): 
  - PyQt5, pyautogui, pyperclip, pyqrcode, pypng, exchangelib
  - All further dependencies should already be in a standard Python build
