@@ -4,8 +4,12 @@
 import sys
 sys.path.append('../Modules/')
 
+import os
 import argparse
-import sh, os
+import subprocess as sp
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from time import sleep
 
 GoogleDrivePath = '/home/pi/GoogleDrive/'
 DataPath = '/home/pi/beerlist/Data/'
@@ -13,6 +17,36 @@ DataPath = '/home/pi/beerlist/Data/'
 parser = argparse.ArgumentParser(description='A script to make and upload backups of our data.')
 parser.add_argument('mode', type=str, choices=['users', 'stats', 'party', 'payment', 'all'], help='Choose one of these modes to backup up the according files. Note that "party" and "payment", are simply to have a separate folder for rapid backups during parties and a specific folder for payment-related back ups.')
 parser.add_argument('-clean', action='store_true', default=False, help='Add this flag to clean the Google Drive folder of the specified update mode. The files for the last month are kept for all but "all-mode", which retains the last 2 months worth of data, and "party-mode", which cleans all data. (In the subfolder)')
+
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+def rg2gr(expr):
+    expr = expr.replace('.', '\.').replace('*', '.*')
+    return expr
+
+def date(monthsBack=0):
+    dT = relativedelta(months=-monthsBack)
+    date = datetime.now() + dT
+    return date
+
+def runProc(args, shell=False):
+    if shell:
+        out, err = sp.Popen(' '.join(args), shell=True, stdout=sp.PIPE, stderr=sp.PIPE).communicate()
+    else:
+        out, err = sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE).communicate()
+    out, err = out.decode('utf-8'), err.decode('utf-8')
+    print(out, err)
+    return out, err
 
 def backup(mode=None, clean=False):
 
@@ -40,50 +74,55 @@ def backup(mode=None, clean=False):
 
     if not clean:
 
-        DateStamp = sh.date('+%y.%m.%d_%H-%M')
+        DateStamp = date().strftime('%y.%m.%d_%H-%M')
         BackupFile = f'{FileMask}{DateStamp}.tar.gz'
         FullFilePath = f'{GoogleDrivePath}{GoogleDriveSub}/{BackupFile}'
 
-        sh.cd(DataPath)
-        sh.tar('czf', FullFilePath, DataSub, SecDataSub)
+        for x in runProc('pwd'): print(x)
+        #runProc(['cd', DataPath], shell=True)
+        with cd(DataPath):
+            for x in runProc('pwd'): print(x)
+            runProc(['tar', 'czf', FullFilePath, DataPath, SecDataSub])
+            for x in runProc('pwd'): print(x)
 
-        sh.cd(GoogleDrivePath)
-        output = os.popen(f'grive -u -s {GoogleDriveSub}')
-        print(output)
+        #runProc(['cd', GoogleDrivePath], shell=True)
+        with cd(GoogleDrivePath):
+            for x in runProc('pwd'): print(x)
+            print('Did grive!')#runProc(['grive', '-us', GoogleDriveSub])
 
-        sh.sleep('1s')
+            sleep(1)
 
-        with open('.griveignore', 'a') as file:
-            file.write(f'{GoogleDriveSub}/{BackupFile}\n')
+            with open('.griveignore', 'a') as file:
+                file.write(f'{GoogleDriveSub}/{BackupFile}\n')
 
     else:
 
-        LastDate = sh.date('+%d', date=f'{CleanTime} month ago')
-        LastMonth = sh.date('+%m', date=f'{CleanTime} month ago')
-        LLastMonth = sh.date('+%m', date=f'{CleanTime + 1} month ago')
+        LastDate = date(CleanTime).strftime('%d')
+        LastMonth =  date(CleanTime).strftime('%m')
+        LLastMonth =  date(CleanTime + 1).strftime('%m')    
 
         Mask1 = f'{FileMask}*.{LastMonth}.[0-{LastDate[0]}][0-{LastDate[1]}]_*-*.tar.gz'
+        gMask1 = rg2gr(Mask1)
         Mask2 = f'{FileMask}*.{LLastMonth}.[0-9][0-9]_*-*.tar.gz'
+        gMask2 = rg2gr(Mask2)
 
-        sh.cd(GoogleDrivePath)
-        output = os.popen(f'grive -f -s {GoogleDriveSub}')
-        print(output)
+        #runProc(['cd', GoogleDrivePath], shell=True)
+        with cd(GoogleDrivePath):
+            print('Did grive!')#runProc(['grive', '-fs', GoogleDriveSub])
 
-        sh.sleep('1s')
+            sleep(1)
 
-        sh.rm('-f', f'{GoogleDrivePath}{GoogleDriveSub}/{Mask1}')
-        sh.rm('-f', f'{GoogleDrivePath}{GoogleDriveSub}/{Mask2}')
+            runProc(['rm', '-f', GoogleDrivePath + GoogleDriveSub + Mask1], shell=True)
+            runProc(['rm', '-f', GoogleDrivePath + GoogleDriveSub + Mask2], shell=True)
+            print('Did grive!')#runProc(['grive', '-s', GoogleDriveSub])
 
-        output = os.popen(f'grive -s {GoogleDriveSub}')
-        print(output)
+            sleep(1)
 
-        sh.sleep('1s')
+            runProc(['grep', '-v', f'{GoogleDriveSub}/{gMask1}', '.griveignore', 'tmp'])
+            runProc(['grep', '-v', f'{GoogleDriveSub}/{gMask2}', 'tmp', '.griveignore'])
+            runProc(['rm', '-f', 'tmp'])
 
-        sh.grep('-v', f'{GoogleDriveSub}/{Mask1}', '.griveignore', _out='tmp')
-        sh.grep('-v', f'{GoogleDriveSub}/{Mask2}', 'tmp', _out='.griveignore')
-        sh.rm('-f', 'tmp')
-
-    sh.rm('-f', f'{GoogleDrivePath}{GoogleDriveSub}/*.tar.gz')
+    runProc(['rm', '-f', GoogleDrivePath + GoogleDriveSub + '/*.tar.gz'], shell=True)
 
 if __name__ == '__main__':
     backup()

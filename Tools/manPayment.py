@@ -23,7 +23,7 @@ def plog(string, printIt=True):
         print(string)
 
 def inplog(string):
-    plog(string)
+    plog(string, False)
     inString = input(string + '\n')
     if inString == '':
         outString = '(input): *accept*'
@@ -46,6 +46,9 @@ def main():
 
             if inString.lower() == 'exit':
                 exitFlag = True
+                continue
+            elif inString == '':
+                plog('Please write something.')
                 break
 
             if len(matchedUsers) == 1 and matchedRefIdxs == []:
@@ -55,16 +58,18 @@ def main():
                 if inString == '':
                     matchType = '(ord)'
                     match = user
-                    break
+                else:
+                    continue
 
             elif len(matchedRefIdxs) == 1 and matchedUsers == []:
-                user = reUsers[matchedRefIdxs[0]]
+                user = refUsers[matchedRefIdxs[0]]
                 plog(f'  Found (ref): {user.sduId}, {user.name} with a {user.balance} balance.')
                 inString = inplog('Press enter to accept or type in a new query:')
                 if inString == '':
                     matchType = '(ref)'
                     match = matchedRefIdxs[0]
-                    break
+                else:
+                    continue
 
             elif matchedUsers and matchedRefIdxs == []:
                 plog('  No matches found at all.')
@@ -84,7 +89,7 @@ def main():
 
                 if matchedRefIdxs != []:
                     plog('  Found the following reference users:')
-                    for i, refIdx in matchedRefIdxs:
+                    for i, refIdx in enumerate(matchedRefIdxs):
                         refUser = refUsers[refIdx]
                         plog(f'    {i+refStart}: {refUser.sduId}, {refUser.balance}, {refUser.name}')
                     if len(matchedRefIdxs) == 0:
@@ -103,12 +108,11 @@ def main():
                         else:
                             matchType = '(ref)'
                             match = matchedRefIdxs[inInt - refStart]
-                        break
                 except:
-                    pass
+                    continue
 
             if exitFlag:
-                break
+                continue
 
             if matchType == '(ref)':
                 user = refUsers[match]
@@ -134,14 +138,14 @@ def main():
                     inString = inplog('Not a number, please try again ("back" return to queries, nothing equals "0"):')
 
             if exitFlag:
-                break
+                continue
 
             if type(amount) is int:
                 user.paySome(amount)
                 plog(f'Corrected {matchType} user to: {user.sduId}, {user.balance}, {user.name}')
                 inString = inplog('Save these changes (no-/anything to accept/decline)?')
                 if inString == '':
-                    if matchType = '(ord)':
+                    if matchType == '(ord)':
                         user.saveUser()
                         plog('User saved.\n')
                     else:
@@ -151,12 +155,14 @@ def main():
                         plog('Reference users saved.\n')
                     totalChanges += 1
                     totalPaidAmount += amount
+                    break
 
                 elif inString.lower() == 'exit':
                     plog('Nothing was changed.\n')
-                    break
+                    exitFlag = True
                 else:
                     plog('Nothing was changed.\n')
+                    break
 
     plog('\nExiting!')
     plog(f'Made a total of {totalChanges} adding up to a total paid amount of {totalPaidAmount} kr.!')
