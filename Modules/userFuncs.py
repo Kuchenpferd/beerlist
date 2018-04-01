@@ -20,13 +20,16 @@ class userInstance(object):
 
     # The user is set up with all of the properties
     def __init__(self, name, mail, sduId, pwd, balance = 0, cardId = '', number = 0,
-                 lastPay = 1, lastActive = 1):
+                 lastPay = 1, lastActive = 1, createDate = 1):
 
         # As the default input for unspecified last payment date is 1,
         # we now that if lastPay = 1, then we need to set both dates:
         if lastPay == 1:
             lastPay = date(2000, 1, 1)
             lastActive = date.today()
+
+        if createDate == 1:
+            createDate = date.today()
 
         # All parameters are transferred to be properties of the user
         self.name = name
@@ -37,6 +40,7 @@ class userInstance(object):
         self.cardId = cardId
         self.lastPay = lastPay
         self.lastActive = lastActive
+        self.createDate = createDate
         self.number = number
         
     # Internal function to add 'units' marks to the the user balance
@@ -51,13 +55,16 @@ class userInstance(object):
         updateStats(statType, units)
 
     # Internal function to handle payments
-    def paySome(self, amount):
+    def paySome(self, amount, payDate=None):
 
         # The balance is subtracted the paid amount
         self.balance -= amount
 
         # The last pay property is updated
-        self.lastPay = date.today()
+        if payDate is not None:
+            self.lastPay = payDate
+        else:
+            self.lastPay = date.today()
 
     # Internal function that writes a file for the current object
     def saveUser(self):
@@ -79,6 +86,7 @@ class userInstance(object):
             userFile.write(self.cardId + '\n')
             userFile.write(str(self.lastPay) + '\n')
             userFile.write(str(self.lastActive) + '\n')
+            userFile.write(str(self.createDate) + '\n')
 
 # A function that loads a single user from 'path'
 def loadUser(path):
@@ -97,18 +105,20 @@ def loadUser(path):
         # As both lines containing dates need to be specifically formatted, they are
         # treated specially.
         lastPayLine = userContent[6].split('-')
-        lastPay = date(int(lastPayLine[0]),
-                       int(lastPayLine[1]),
-                       int(lastPayLine[2]))
+        lastPay = date(*[int(x) for x in lastPayLine])
         
         lastActiveLine = userContent[7].split('-')
-        lastActive = date(int(lastActiveLine[0]),
-                          int(lastActiveLine[1]),
-                          int(lastActiveLine[2]))
+        lastActive = date(*[int(x) for x in lastActiveLine])
+
+        try:
+            createLine = userContent[7].split('-')
+            createDate = date(*[int(x) for x in createLine])
+        except IndexError:
+            createDate = 1
 
         # At last everything is put into a user object and returned
         tmpUser = userInstance(name, mail, sduId, pwd, balance, cardId, number,
-                               lastPay, lastActive)
+                               lastPay, lastActive, createDate)
     return tmpUser
 
 # A function that loads all users and return a list
@@ -212,7 +222,7 @@ def validSduId(sduId):
 def searchUsers(inString, users = None):
     inString = inString.lower()
     if users == None:
-        users = loadRefUsers()
+        users = loadUsers()
     matchUsers = []
     for user in users:
         if inString in user.name.lower() or inString in user.sduId.lower() or inString in user.mail.lower():

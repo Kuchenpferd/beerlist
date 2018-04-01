@@ -28,7 +28,7 @@ class refUserInstance(object):
         self.cardId = cardId
 
     # Internal function to handle payments
-    def paySome(self, amount):
+    def paySome(self, amount, lastPay=None):
 
         # The balance is subtracted the paid amount
         self.balance -= amount
