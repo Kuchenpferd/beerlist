@@ -78,17 +78,11 @@ def backup(mode=None, clean=False):
         BackupFile = f'{FileMask}{DateStamp}.tar.gz'
         FullFilePath = f'{GoogleDrivePath}{GoogleDriveSub}/{BackupFile}'
 
-        for x in runProc('pwd'): print(x)
-        #runProc(['cd', DataPath], shell=True)
         with cd(DataPath):
-            for x in runProc('pwd'): print(x)
             runProc(['tar', 'czf', FullFilePath, DataPath, SecDataSub])
-            for x in runProc('pwd'): print(x)
 
-        #runProc(['cd', GoogleDrivePath], shell=True)
         with cd(GoogleDrivePath):
-            for x in runProc('pwd'): print(x)
-            print('Did grive!')#runProc(['grive', '-us', GoogleDriveSub])
+            runProc(['grive', '-us', GoogleDriveSub])
 
             sleep(1)
 
@@ -106,15 +100,14 @@ def backup(mode=None, clean=False):
         Mask2 = f'{FileMask}*.{LLastMonth}.[0-9][0-9]_*-*.tar.gz'
         gMask2 = rg2gr(Mask2)
 
-        #runProc(['cd', GoogleDrivePath], shell=True)
         with cd(GoogleDrivePath):
-            print('Did grive!')#runProc(['grive', '-fs', GoogleDriveSub])
+            runProc(['grive', '-fs', GoogleDriveSub])
 
             sleep(1)
 
             runProc(['rm', '-f', GoogleDrivePath + GoogleDriveSub + Mask1], shell=True)
             runProc(['rm', '-f', GoogleDrivePath + GoogleDriveSub + Mask2], shell=True)
-            print('Did grive!')#runProc(['grive', '-s', GoogleDriveSub])
+            runProc(['grive', '-s', GoogleDriveSub])
 
             sleep(1)
 
