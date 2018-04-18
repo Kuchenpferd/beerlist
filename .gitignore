@@ -6,3 +6,4 @@
 /Modules/__pycache__
 /Tools/__pycache__
 /Resources/qrcode.png
+*.csv
