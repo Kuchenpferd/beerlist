@@ -29,7 +29,7 @@ def plog(string, printIt=True):
             with open(logPath, 'w', encoding='utf-8') as logFile:
                 print(string, file=logFile)
     if printIt:
-        print(string)
+        print(string[:-1])
 
 def intF(str):
     num = float(str.replace('.','').replace(',','.'))
@@ -50,8 +50,12 @@ def main():
     plog('\nAuto payment log ' + today.strftime('%y.%m.%d %H:%M') + '\n')
     totalChanges = 0
     totalPaidAmount = 0
+    netDebt, debt = refFuncs.totalRefDebt(userFuncs.totalDebt())
+    plog(f'The current net debt is {netDebt} kr. with the following dispersion:')
+    for interval in debt:
+        plog(f'  {interval} : {debt[interval]} kr.')
 
-    plog('Archiving previous payment files.')
+    plog('\nArchiving previous payment files.')
     archiveFolder = payFolder + 'Archive/' + today.strftime('%y.%m.%d')
     count = 0
     while True:
@@ -78,7 +82,7 @@ def main():
         runProc(['mv', mainFolder + '*-Orig.csv', payFolder], shell=True)
 
     plog('Backing up all users and payment archives.')
-    #backup(mode='payment')
+    backup(mode='payment')
 
 
     for userType in typeDict:
@@ -130,7 +134,13 @@ def main():
     runProc(['cp', payFolder + 'MobPay-AutoFinal.csv', mainFolder + 'MobPay-Final.csv'])
     plog("That's it for this time, please check the *-Final.csv files in ~/beerlist/,\nthese should be manually checked for missed entries, a good tool should be\nmanPayment.\nPlease remove the lines as you find them and move the files\nto ~/beerlist/Data/Payment/ when done.")
     plog(f'A total of {totalChanges} changes have been made adding up to a total paid amount\nof {totalPaidAmount} kr.!')
-    plog(f'Please refer to the log of this run at ~/beerlist/Data/Payment/payment.log\n')
+
+    netDebt, debt = refFuncs.totalRefDebt(userFuncs.totalDebt())
+    plog(f'The new net debt is {netDebt} kr. with the following dispersion:')
+    for interval in debt:
+        plog(f'  {interval} : {debt[interval]} kr.')
+
+    plog(f'\nPlease refer to the log of this run at ~/beerlist/Data/Payment/payment.log\n')
     runProc(['mv', logPath, logPath[:-2]])
 
 if __name__ == '__main__':

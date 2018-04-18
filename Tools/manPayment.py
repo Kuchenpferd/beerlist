@@ -37,6 +37,13 @@ def main():
     plog('Welcome to manual payment entries!')
     totalChanges = 0
     totalPaidAmount = 0
+
+    netDebt, debt = refFuncs.totalRefDebt(userFuncs.totalDebt())
+    plog(f'The current net debt is {netDebt} kr. with the following dispersion:')
+    for interval in debt:
+        plog(f'  {interval} : {debt[interval]} kr.')
+    plog('')
+
     while True:
         exitFlag = False
         inString = inplog('Enter part/all of a name or sduId:')
@@ -166,6 +173,12 @@ def main():
 
     plog('\nExiting!')
     plog(f'Made a total of {totalChanges} adding up to a total paid amount of {totalPaidAmount} kr.!')
+
+    netDebt, debt = refFuncs.totalRefDebt(userFuncs.totalDebt())
+    plog(f'The final net debt is {netDebt} kr. with the following dispersion:')
+    for interval in debt:
+        plog(f'  {interval} : {debt[interval]} kr.')
+
     plog(f'Please refer to the log of this run at {logPath}\n')
 
 if __name__ == '__main__':

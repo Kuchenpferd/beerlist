@@ -229,6 +229,29 @@ def searchUsers(inString, users = None):
             matchUsers.append(user)
     return matchUsers
 
+def totalDebt(debt=None, netDebt=None, users=None):
+
+    if users == None:
+        users = loadUsers()
+    if debt is None:
+        debt = {'400:2000':0, '350:400':0, '300:350':0, '250:300':0, '200:250':0, '150:200':0, '100:150':0, '50:100':0, '0:50':0,
+                '-50:0':0, '-100:-50':0, '-150:-100':0, '-200:-150':0, '-250:-200':0, '-300:-250':0, '-350:-300':0, '-400:-350':0, '-2000:-400':0}
+    
+    for user in users:
+        for interval in debt:
+            itvl = [int(i) for i in interval]
+            if itvl[0] < user.balance and user.balance <= itvl[1]:
+                debt[interval] += user.balance
+
+    if netDebt is None:
+        netDebt = 0
+    for interval in debt:
+        netDebt += debt[interval]
+
+    return debt, netDebt
+
+
+
 def refToMainUser(refUser):
     mainUser = userInstance(refUser.name, refUser.mail, refUser.sduId, refUser.pwd, refUser.balance)
     return mainUser
