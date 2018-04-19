@@ -63,7 +63,7 @@ def backup(mode=None, clean=False):
     elif mode == 'payment':
         DataSub = 'Users'
         SecDataSub = 'Payment/Archive'
-        CleanTime = 3
+        CleanTime = 4
 
     if not clean:
 

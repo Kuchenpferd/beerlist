@@ -35,4 +35,8 @@ def sendMails(debtLimit=None):
         print(f'Sent {mailSent} of {len(usersTup)} mails to {userType[i]} users.')
 
 if __name__ == '__main__':
-    sendMails()
+    do = input('Are you sure you want to send mails? (Yes/Anything)\n')
+    if do == 'Yes':
+        sendMails()
+    else:
+        print('Okay, bye..')
