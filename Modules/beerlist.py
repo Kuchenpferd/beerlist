@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore, QtGui
 import genUIs
 import newUserUIs
 import refFuncs
@@ -11,8 +11,9 @@ from threading import Timer
 # The class for the main window, which is the main container of everything
 class mainWindow(QtWidgets.QWidget):
 
-    def __init__(self, parent = None):
+    def __init__(self, app, parent = None):
         super(mainWindow, self).__init__(parent)
+        self.app = app
 
         # The geometry is set up
         self.setGeometry(0,0,800,480)
@@ -69,7 +70,13 @@ class mainWindow(QtWidgets.QWidget):
 
         if idUI == 'back':
             idUI = self.lastWidgetId
-        self.lastWidgetId = self.widgetStack.currentWidget().id
+
+        if self.lastWidgetId == 'loggedIn':
+            self.lastWidgetId = 'mainMenu'
+        elif self.widgetStack.currentWidget().id == 'login' and idUI == 'loggedIn':
+            self.lastWidgetId = 'mainMenu'
+        else:
+            self.lastWidgetId = self.widgetStack.currentWidget().id
 
         # Every time the UI is changed a timer is restarted that returns
         # to the main UI after 300 sec (5 min). If the UI is changed TO the main menu
@@ -79,7 +86,7 @@ class mainWindow(QtWidgets.QWidget):
         elif idUI != 'mainMenu' and self.lastWidgetId != 'markDone':
             self.mainTimer.cancel()
             if idUI != 'mainMenu':
-                self.mainTimer = Timer(300, lambda: self.changeUI('mainMenu2'))
+                self.mainTimer = Timer(180, lambda: self.changeUI('mainMenu2'))
                 self.mainTimer.start()
         
 
@@ -94,17 +101,17 @@ class mainWindow(QtWidgets.QWidget):
         self.widgetStack.setCurrentWidget(UI)
         
         # The UI is updated
-        UI.update()    
-
-
-    
+        UI.update()
         
 
 # The usual main function, followed by the check that this file only can be run
 # if it is not loaded as a module
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    ex = mainWindow()
+    app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
+    ex = mainWindow(app)
+    cursor = QtGui.QCursor()
+    cursor.setPos(800, 480)
     sys.exit(app.exec_())
     
 if __name__ == '__main__':

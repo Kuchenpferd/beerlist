@@ -76,6 +76,11 @@ class userInstance(object):
         # The path is then defined from the user number
         path = f'{dataFolder}Users/user_{self.number:04d}'
 
+        if os.name != 'posix':
+            cardId = self.cardId.replace('_', '?').replace(';', '<').replace(':', '>').replace('æ', ';')
+        else:
+            cardId = self.cardId
+
         # The user file is opened and all the information of the user is written to the file
         with open(path, 'w', encoding = 'utf-8') as userFile:
             userFile.write(self.name + '\n')
@@ -83,7 +88,7 @@ class userInstance(object):
             userFile.write(self.sduId + '\n')    
             userFile.write(self.pwd + '\n')
             userFile.write(str(self.balance) + '\n')
-            userFile.write(self.cardId + '\n')
+            userFile.write(cardId + '\n')
             userFile.write(str(self.lastPay) + '\n')
             userFile.write(str(self.lastActive) + '\n')
             userFile.write(str(self.createDate) + '\n')
@@ -101,6 +106,9 @@ def loadUser(path):
         balance = int(userContent[4])
         cardId = userContent[5]
         number = int(path.split('_')[1])
+
+        if os.name != 'posix':
+            cardId = cardId.replace(';', 'æ').replace('<', ';').replace('>', ':').replace('?', '_')
 
         # As both lines containing dates need to be specifically formatted, they are
         # treated specially.
@@ -253,7 +261,7 @@ def totalDebt(debt=None, netDebt=None, users=None):
 
 
 def refToMainUser(refUser):
-    mainUser = userInstance(refUser.name, refUser.mail, refUser.sduId, refUser.pwd, refUser.balance)
+    mainUser = userInstance(refUser.name, refUser.mail, refUser.sduId, refUser.pwd, refUser.balance, refUser.cardId)
     return mainUser
 
 # The usual header, which in this case just passes, as this script is not ment to be run at all.

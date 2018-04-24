@@ -79,7 +79,7 @@ def findRefUser(inputString, refUsers = None):
         refUsers = loadRefUsers()
     for refUser in refUsers:
         if inputString == refUser.sduId:
-            refUsers = refUsers.remove(refUser)
+            refUsers.remove(refUser)
             return refUser, refUsers
     return None, refUsers
 

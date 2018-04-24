@@ -4,7 +4,7 @@
 import sys
 import inputWidgets
 import userFuncs, refFuncs, mailFuncs
-from genUIs import expandButton, swipeLineEdit, messageBox, standardUI
+from genUIs import expandButton, swipeLineEdit, messageBox, standardUI, cardInit
 from hashlib import sha256
 from math import ceil
 from copy import deepcopy
@@ -25,9 +25,6 @@ class newUserInitial(standardUI):
 
         self.input = 'sduId'
 
-        keyBoard = inputWidgets.inputFrame('full', self)
-        keyBoard.enterBtn.clicked.connect(self.enterAction)
-
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
@@ -38,13 +35,16 @@ class newUserInitial(standardUI):
         self.titleLabel = titleLabel
 
         empBtn = expandButton(self)
-        empBtn.setText('Employee')
+        empBtn.setText('Employee?')
         empBtn.clicked.connect(lambda: self.updateMode('sduIdAlt'))
         self.empBtn = empBtn
 
         inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
+
+        keyBoard = inputWidgets.inputFrame(self.inputEdit, 'full', self)
+        keyBoard.enterBtn.clicked.connect(self.enterAction)
         
         grid = QtWidgets.QGridLayout(contentFrame)
         grid.addWidget(titleLabel, 0, 0, 1, 3)
@@ -119,7 +119,7 @@ class newUserInitial(standardUI):
         elif inputMode == 'secPwd':
             self.input = 'secPwd'
 
-            self.titleLabel.setText('Please enter the password again')
+            self.titleLabel.setText('Please enter the password again:')
 
         self.inputEdit.setText('')
         self.inputEdit.setFocus(True)
@@ -153,7 +153,7 @@ class newUserInitial(standardUI):
             try:
                 if name is not None:
                     refUser.name = name
-                self.errorDialog(f"""Hi {refUser.name},\nYou previously had a balance of {refUser.balance}.\nWelcome to the new system!""")
+                self.errorDialog(f"""Hi {refUser.name},\nYou previously had a balance of {refUser.balance} kr.\nWelcome to the new system!""")
                 currentUser.name = refUser.name
                 currentUser.sduId = refUser.sduId
                 currentUser.mail = f'{refUser.sduId}@student.sdu.dk'
@@ -306,7 +306,7 @@ class newUserInitial(standardUI):
         # A message box is set up with a text and two buttons
         msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True)
-        msg.setText('Did you previously have a non-zero balance?')
+        msg.setText('Did you ever use the paper system?')
         msg.setStandardButtons(QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes)
 
         # msg.exec_() will return the value of the pressed button
@@ -505,7 +505,8 @@ class newUserOldUsers(standardUI):
         # A check to see if the 'Yes' button was pressed, and the UI is then changed
         if pressedButton == QtWidgets.QMessageBox.Yes:
             self.mainWidget.currentUser.balance = refUser.balance
-            self.mainWidget.currentRefUserList = self.refUserList.remove(refUser)
+            self.refUserList.remove(refUser)
+            self.mainWidget.currentRefUserList = self.refUserList
 
             if self.mainWidget.currentUser.cardId is None:
                 self.mainWidget.changeUI('newUserCard')
@@ -535,14 +536,11 @@ class newUserBalance(standardUI):
         super(newUserBalance, self).__init__(mainWidget, parent, backButton = False)
         self.id = 'newUserBalance'
 
-        numPad = inputWidgets.inputFrame('numpad', self)
-        numPad.enterBtn.clicked.connect(self.enterAction)
-
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
-        self.titleString = 'Please enter your current balance: (Sign will be added later)'
+        self.titleString = 'Current balance: (Sign added next)'
         
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString)
@@ -553,6 +551,9 @@ class newUserBalance(standardUI):
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         inputEdit.setMaxLength(5)
         self.inputEdit = inputEdit
+
+        numPad = inputWidgets.inputFrame(self.inputEdit, 'numpad', self)
+        numPad.enterBtn.clicked.connect(self.enterAction)
         
         vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
@@ -568,7 +569,7 @@ class newUserBalance(standardUI):
 
         balance = int(self.inputEdit.text())
 
-        if balance >= 900:
+        if balance >= 1200:
             self.errorDialog(f'Sorry, but that seems very unlikely!\nPlease try again or contact {contact}!')
             self.update()
             return
@@ -590,7 +591,7 @@ class newUserBalance(standardUI):
         # A message box is set up with a text and two buttons
             msg = messageBox(self.mainWidget)
             msg = changeFont(msg, 12, True)
-            msg.setText('Was the sign of your balance "-" (No) or "+" (Yes)')
+            msg.setText('Was the sign of your balance "+" (Yes) or "-" (No)')
             msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
             # msg.exec_() will return the value of the pressed button
@@ -648,9 +649,12 @@ class newUserCard(standardUI):
 
     def swipeAction(self):
         if self.input == 0:
-            self.titleLabel.setText(self.titleString[1])
-            self.swipeOne = self.cardSequence
-            self.input = 1
+            if self.cardSequence[0:3] == cardInit:
+                self.titleLabel.setText(self.titleString[1])
+                self.swipeOne = self.cardSequence
+                self.input = 1
+            else:
+                self.errorDialog("Sorry, but the swiped card doesn't\nseem to be a SDU card?\nPlease try again!")
 
         elif self.input == 1:
             if self.swipeOne == self.cardSequence:
@@ -694,8 +698,8 @@ class newUserFinal(standardUI):
 
         grid = QtWidgets.QGridLayout(self)
         grid.addWidget(titleLabel, 0, 0, 1, 4)
-        grid.addWidget(noBtn, 6, 0, 1, 3)
-        grid.addWidget(yesBtn, 6, 3)
+        grid.addWidget(yesBtn, 6, 0, 1, 3)
+        grid.addWidget(noBtn, 6, 3)
 
         contentString = [('Name:', '{name}'), ('SDU-ID:', '{sduId}'), ('Mail:', '{mail}'), ('Balance:', '{balance}')]
 
@@ -757,6 +761,7 @@ class newUserFinal(standardUI):
 
             # A check to see if the 'Yes' button was pressed, and the UI is then changed
             if pressedButton == QtWidgets.QMessageBox.Yes:
+                self.mainWidget.currentUser = refFuncs.refUserInstance()
                 self.mainWidget.changeUI('newUserInitial')
 
     def errorDialog(self, errorText):

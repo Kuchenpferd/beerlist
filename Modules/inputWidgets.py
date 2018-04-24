@@ -2,13 +2,58 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import pyperclip
 import pyautogui as pag
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 # Path to determine the resource folder (Should be changed, when imported
 workFolder = './../'
 resourceFolder = workFolder + 'Resources/'
+
+keyDict = {
+    '1':QtCore.Qt.Key_1,
+    '2':QtCore.Qt.Key_2,
+    '3':QtCore.Qt.Key_3,
+    '4':QtCore.Qt.Key_4,
+    '5':QtCore.Qt.Key_5,
+    '6':QtCore.Qt.Key_6,
+    '7':QtCore.Qt.Key_7,
+    '8':QtCore.Qt.Key_8,
+    '9':QtCore.Qt.Key_9,
+    '0':QtCore.Qt.Key_0,
+    'a':QtCore.Qt.Key_A,
+    'b':QtCore.Qt.Key_B,
+    'c':QtCore.Qt.Key_C,
+    'd':QtCore.Qt.Key_D,
+    'e':QtCore.Qt.Key_E,
+    'f':QtCore.Qt.Key_F,
+    'g':QtCore.Qt.Key_G,
+    'h':QtCore.Qt.Key_H,
+    'i':QtCore.Qt.Key_I,
+    'j':QtCore.Qt.Key_J,
+    'k':QtCore.Qt.Key_K,
+    'l':QtCore.Qt.Key_L,
+    'm':QtCore.Qt.Key_M,
+    'n':QtCore.Qt.Key_N,
+    'o':QtCore.Qt.Key_O,
+    'p':QtCore.Qt.Key_P,
+    'q':QtCore.Qt.Key_Q,
+    'r':QtCore.Qt.Key_R,
+    's':QtCore.Qt.Key_S,
+    't':QtCore.Qt.Key_T,
+    'u':QtCore.Qt.Key_U,
+    'v':QtCore.Qt.Key_V,
+    'w':QtCore.Qt.Key_W,
+    'x':QtCore.Qt.Key_X,
+    'y':QtCore.Qt.Key_Y,
+    'z':QtCore.Qt.Key_Z,
+    'æ':QtCore.Qt.Key_AE,
+    'ø':QtCore.Qt.Key_Ooblique,
+    'å':QtCore.Qt.Key_Aring,
+    '-':QtCore.Qt.Key_Minus,
+    ".":QtCore.Qt.Key_Period,
+    '@':QtCore.Qt.Key_At,
+    'space':QtCore.Qt.Key_Space,
+    'backspace':QtCore.Qt.Key_Backspace}
 
 def changeFont(someLabel, size = 10, bold = False, align = 'l'):
     if align == 'l':
@@ -19,7 +64,7 @@ def changeFont(someLabel, size = 10, bold = False, align = 'l'):
         alignment = QtCore.Qt.Alignment(QtCore.Qt.AlignRight)
         
     newFont = someLabel.font()
-    newFont.setPointSize(size + 4)
+    newFont.setPointSize(size)
     newFont.setBold(bold)
     someLabel.setFont(newFont)
     
@@ -30,15 +75,26 @@ def changeFont(someLabel, size = 10, bold = False, align = 'l'):
     
     return someLabel
 
-# Emulate a keypress of non-standard utf8 keys, through pyperclip
-def emuKeyPress(Key):
-    pyperclip.copy(Key)
-    pag.hotkey('ctrl','v')
+# Emulate a keypress of non-standard utf8 keys
+def emuKeyPress(target, Key):
+    if Key.isupper():
+        modKey = QtCore.Qt.ShiftModifier
+    else:
+        modKey = QtCore.Qt.NoModifier
+    key = Key.lower()
+
+    event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, keyDict[key], modKey, text=Key)
+
+    target.keyPressEvent(event)
 
 # Superclass of the rest of the keyButtons with some standard settings
 class keyButton(QtWidgets.QPushButton):
     def __init__(self, parent = None):
         super(keyButton, self).__init__(parent)
+        if parent is not None:
+            self.target = parent.target
+        else:
+            self.target = None
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding))
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.clicked.connect(self.onClick)
@@ -53,12 +109,12 @@ class numKeyButton(keyButton):
 
     def __init__(self, priKey, parent = None):
         super(numKeyButton, self).__init__(parent)
-        
+        self = changeFont(self, 12)
         self.priKey = priKey
         self.setText(priKey)
 
     def onClick(self):
-        emuKeyPress(self.priKey)
+        emuKeyPress(self.target, self.priKey)
 
 # Class for the modifier keys (Shift and Alt), basically just a checkable QPushButton
 class modKeyButton(keyButton):
@@ -138,14 +194,15 @@ class boardKeyButton(keyButton):
         if self.modShButton.isChecked():
             Key = Key.upper()
             self.modShButton.click()
-        emuKeyPress(Key)
+        emuKeyPress(self.target, Key)
 
 # The class that contains the input layout
 class inputFrame(QtWidgets.QFrame):
 
     # Takes an input type and a parent in; disables drawing of the frame
-    def __init__(self, inputType = '', parent = None):
+    def __init__(self, target, inputType = '', parent = None):
         super(inputFrame, self).__init__(parent)
+        self.target = target
         self.setFrameShape(0)
 
         # Calls the appropriate layout setup according to the input type
@@ -188,7 +245,7 @@ class inputFrame(QtWidgets.QFrame):
             elif name == 'backspace':
                 btn = keyButton(self)
                 btn.setIcon(QtGui.QIcon(resourceFolder + 'backspace.svg'))
-                btn.clicked.connect(lambda: pag.hotkey('backspace'))                
+                btn.clicked.connect(lambda: emuKeyPress(btn.target, 'backspace'))                
                 grid.addWidget(btn, *position, 1, 2)
 
             # Instanciates the enter key, including icon and sets it as a property
@@ -208,7 +265,7 @@ class inputFrame(QtWidgets.QFrame):
             # Creates the spacebar including action.
             elif name == 'space':
                 btn = keyButton(self)
-                btn.clicked.connect(lambda: pag.hotkey('space'))                
+                btn.clicked.connect(lambda: emuKeyPress(btn.target, 'space'))                
                 grid.addWidget(btn, *position, 1, 5)
 
             # Generates the ordinary keys, handing them the modifier keys
@@ -245,7 +302,7 @@ class inputFrame(QtWidgets.QFrame):
             if name == 'backspace':
                 btn = keyButton(self)
                 btn.setIcon(QtGui.QIcon(resourceFolder + 'backspace.svg'))
-                btn.clicked.connect(lambda: pag.hotkey('backspace'))
+                btn.clicked.connect(lambda: emuKeyPress(btn.target, 'backspace'))
 
             # Creates the enter key, including icon and sets it as a property
             # of the frame, so that it can be reached in order to specify on click action later
@@ -263,47 +320,9 @@ class inputFrame(QtWidgets.QFrame):
 
         # Finally connects the layout to the grid
         self.setLayout(grid)
-
-
-
-
-
-
-# Dummy widget to test. Basically the same as ./minimal_keypad.py
-class Example(QtWidgets.QWidget):
-    
-    def __init__(self):
-        super(Example, self).__init__()
-        self.setWindowTitle('Calculator')
-        self.resize(800,480)
-        self.move(300, 150)
-        
-        self.mainUI()
-
-    def mainUI(self):
-
-        # The LineEdit is manually placed outside the input frames
-        line_ed = QtWidgets.QLineEdit(self)
-        line_ed.setFocus(True)
-        line_ed.move(20,10)
-        line_ed.resize(760,30)
-
-        # The input type is set, 1 or 'full' (2 or 'numpad')
-        # to get the full (numpad) keyboard layout
-        inputType = 1
-        
-        # The input frame is then created, handing it an input type
-        Frame = inputFrame(inputType, self)
-
-        # Afterwards the action of the enter key can then be set like so
-        Frame.enterBtn.clicked.connect(lambda: pag.typewrite('ENTER!'))
-        
-        
+      
 def main():
-    app = QtWidgets.QApplication(sys.argv)
-    ex = Example()
-    ex.show()
-    sys.exit(app.exec_())
+    pass
 
 if __name__ == '__main__':
     main()

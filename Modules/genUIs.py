@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import inputWidgets
 import userFuncs, refFuncs, statFuncs, mailFuncs
@@ -8,6 +9,14 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from hashlib import sha256
 from threading import Timer
 from copy import copy
+
+if os.name == 'posix':
+    cardInitKey = QtCore.Qt.Key_Semicolon
+    cardInit = ';<>'
+else:
+    cardInitKey = QtCore.Qt.Key_AE
+    cardInit = 'æ;:'
+
 
 contact = 'mikkc13'
 workFolder = './../'
@@ -33,8 +42,8 @@ class swipeLineEdit(QtWidgets.QLineEdit):
         self.parent = parent
 
     def keyPressEvent(self, event):
-        if event.text() != 'æ':
-            if self.parent.cardSequence[0] != 'æ':
+        if event.key() != cardInitKey:
+            if self.parent.cardSequence[0] != cardInit[0]:
                 super(swipeLineEdit, self).keyPressEvent(event)
         self.parent.keyPressEvent(event)
 
@@ -78,13 +87,15 @@ class standardUI(QtWidgets.QWidget):
     # Modifies the keyPressedEvent to specifically listen for SDU cards
     def keyPressEvent(self, event):
         if type(event) == QtGui.QKeyEvent:
-            if self.swipeActive:
+            if event.key() == QtCore.Qt.Key_Q and event.modifiers() == QtCore.Qt.ControlModifier:
+                sys.exit(0)
+            elif self.swipeActive:
                 # Check if the pressed keycode matches the card initializer 'æ'
-                if event.key() == 198:
+                if event.key() == cardInitKey:
                     # Clears the stored sequence, i.e. initialization
                     self.cardSequence = ''
                 # Check if the pressed keycode matches the card terminator (Either 'Enter' key, should be cleaned later)
-                elif event.key() == 16777221 or event.key() == 16777220:
+                elif event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
                     # Placeholder for the event, where we can pass the card sequence, i.e. termination
                     self.swipeAction()
                 # Always add the latest keypress at the end of the card sequence
@@ -137,7 +148,7 @@ class standardUI(QtWidgets.QWidget):
         # A message box is set up with a text and two buttons
         msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.setText('Unknown card swiped!\n\nDo you wish to create a new user?')
+        msg.setText('Unknown card swiped!\nDo you wish to create a new user?')
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         # msg.exec_() will return the value of the pressed button
@@ -188,7 +199,7 @@ class mainMenu(standardUI):
 
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText('Welcome to Æters Beerlist system v. 2.0')
-        titleLabel = changeFont(titleLabel, 14, True, 'c')
+        titleLabel = changeFont(titleLabel, 13, True, 'c')
 
         contentLabel = QtWidgets.QLabel(self)
         contentLabel.setText(f"""To grab a beer or soda please swipe your card!\nTo grab multiple, press "Multi Mode"!\nTo create a new user swipe your card or press "New User"!\nTo see your balance, grab beers without your card,\nchange your password or card, please login!\nIf you have any problems, please contact {contact}!""")
@@ -211,7 +222,7 @@ class mainMenu(standardUI):
         self.mainWidget.transfer = []
 
     def swipeAction(self):
-        if self.cardSequence[0] == 'æ':
+        if self.cardSequence[0:3] == cardInit:
             swipedUser = userFuncs.findUserCard(self.cardSequence)
             if swipedUser is not None:
                 swipedUser.addSome()
@@ -230,27 +241,26 @@ class multiMode(standardUI):
         self.id = 'multiMode'
         self.swipeActive = True
 
-        numPad = inputWidgets.inputFrame('numpad', self)
-        numPad.enterBtn.clicked.connect(self.enterAction)
-        self.enterBtn = numPad.enterBtn
-
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
-        contentFrame.setGeometry(100, 0, 600, 100)
+        contentFrame.setGeometry(93, 0, 614, 93)
 
-        self.titleString = ['Please enter the wanted amount and swipe your card:',
-                            'Please enter the wanted amount and press enter:']
+        self.titleString = ['Enter the wanted amount and swipe your card:',
+                            'Enter the wanted amount and press enter:']
                             
-        
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(self.titleString[0])
-        titleLabel = changeFont(titleLabel, 12, True, 'c')
+        titleLabel = changeFont(titleLabel, 11, True, 'c')
         self.titleLabel = titleLabel
 
         inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         inputEdit.setMaxLength(2)
         self.inputEdit = inputEdit
+
+        numPad = inputWidgets.inputFrame(self.inputEdit, 'numpad', self)
+        numPad.enterBtn.clicked.connect(self.enterAction)
+        self.enterBtn = numPad.enterBtn
         
         vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
@@ -259,7 +269,7 @@ class multiMode(standardUI):
         contentFrame.setLayout(vbox)
 
     def swipeAction(self):
-        if self.cardSequence[0] == 'æ':
+        if self.cardSequence[0:3] == cardInit:
             swipedUser = userFuncs.findUserCard(self.cardSequence)
             if swipedUser is not None:
                 self.mainWidget.currentUser = swipedUser
@@ -332,7 +342,7 @@ class markDone(standardUI):
 
         payBtn = expandButton(self)
         payBtn.setText('Pay debt')
-        payBtn.clicked.connect(lambda: self.mainWidget.changeUI('payMode'))
+        payBtn.clicked.connect(self.toPayMode)
         self.payBtn = payBtn
 
         grid = QtWidgets.QGridLayout(self)
@@ -384,7 +394,7 @@ class markDone(standardUI):
         self.timer.start()
 
     def swipeAction(self):
-        if self.cardSequence[0] == 'æ':
+        if self.cardSequence[0:3] == cardInit:
             swipedUser = userFuncs.findUserCard(self.cardSequence)
             self.swiped = True
             if swipedUser is not None:
@@ -405,6 +415,10 @@ class markDone(standardUI):
         activeId = self.mainWidget.widgetStack.currentWidget().id
         if activeId == 'markDone':
             self.mainWidget.changeUI('mainMenu')
+
+    def toPayMode(self):
+        self.mainWidget.transfer.append(self.mainWidget.lastWidgetId)
+        self.mainWidget.changeUI('payMode')
         
 class resetPwd(standardUI):
     def __init__(self, mainWidget, parent = None):
@@ -412,14 +426,11 @@ class resetPwd(standardUI):
         self.id = 'resetPwd'
         self.swipeActive = True
 
-        keyBoard = inputWidgets.inputFrame('full', self)
-        keyBoard.enterBtn.clicked.connect(lambda: self.enterAction())
-
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
-        contentFrame.setGeometry(100, 0, 600, 100)
+        contentFrame.setGeometry(93, 0, 614, 93)
 
-        titleString = 'Please enter SDU-ID or swipe card to reset password:'
+        titleString = 'Enter SDU-ID/Swipe card to reset password:'
 
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText(titleString)
@@ -428,6 +439,9 @@ class resetPwd(standardUI):
         inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
+
+        keyBoard = inputWidgets.inputFrame(self.inputEdit, 'full', self)
+        keyBoard.enterBtn.clicked.connect(lambda: self.enterAction())
         
         vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
@@ -441,7 +455,7 @@ class resetPwd(standardUI):
         self.inputEdit.setFocus(True)
 
     def swipeAction(self):
-        if self.cardSequence[0] == 'æ':
+        if self.cardSequence[0:3] == cardInit:
             swipedUser = userFuncs.findUserCard(self.cardSequence)
             if swipedUser is not None:
                 self.enterAction(swipedUser)
@@ -463,7 +477,7 @@ class resetPwd(standardUI):
         # A message box is set up with a text and two buttons
         msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to reset your password?""")
+        msg.setText(f"""Hi {user.name.split(' ')[0]}, \nAre you sure you want to reset your password?""")
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         # msg.exec_() will return the value of the pressed button
@@ -509,14 +523,11 @@ class login(standardUI):
         self.input = 0
         self.count = 1
 
-        keyBoard = inputWidgets.inputFrame('full', self)
-        keyBoard.enterBtn.clicked.connect(self.enterAction)
-
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
-        contentFrame.setGeometry(100, 0, 600, 100)
+        contentFrame.setGeometry(93, 0, 614, 93)
 
-        self.titleString = ['Please enter your SDU-ID or swipe your card to login:',
+        self.titleString = ['Enter your SDU-ID/Swipe your card to login:',
                             'Please enter your password:']
 
         titleLabel = QtWidgets.QLabel(self)
@@ -527,6 +538,9 @@ class login(standardUI):
         inputEdit = swipeLineEdit(self)
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         self.inputEdit = inputEdit
+
+        keyBoard = inputWidgets.inputFrame(self.inputEdit, 'full', self)
+        keyBoard.enterBtn.clicked.connect(self.enterAction)
         
         vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
@@ -545,7 +559,7 @@ class login(standardUI):
         self.inputEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
 
     def swipeAction(self):
-        if self.cardSequence[0] == 'æ':
+        if self.cardSequence[0:3] == cardInit:
             swipedUser = userFuncs.findUserCard(self.cardSequence)
             if swipedUser is not None:
                 self.mainWidget.currentUser = swipedUser
@@ -669,7 +683,7 @@ class loggedIn(standardUI):
         # A message box is set up with a text and two buttons
         msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to change your password?""")
+        msg.setText(f"""Hi {user.name.split(' ')[0]},\nAre you sure you want to change your password?""")
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         # msg.exec_() will return the value of the pressed button
@@ -690,7 +704,7 @@ class loggedIn(standardUI):
         # A message box is set up with a text and two buttons
         msg = messageBox(self.mainWidget)
         msg = changeFont(msg, 12, True, 'c')
-        msg.setText(f"""Hi {user.name.split(' ')[0]}, are you sure you\nwant to change your card?""")
+        msg.setText(f"""Hi {user.name.split(' ')[0]},\nAre you sure you want to change your card?""")
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         # msg.exec_() will return the value of the pressed button
@@ -713,14 +727,11 @@ class changePwd(standardUI):
 
         self.input = 0
 
-        keyBoard = inputWidgets.inputFrame('full', self)
-        keyBoard.enterBtn.clicked.connect(self.enterAction)
-
         contentFrame = QtWidgets.QFrame(self)
         contentFrame.setFrameShape(0)
         contentFrame.setGeometry(100, 0, 600, 100)
 
-        self.titleString = ['Please your new password:',
+        self.titleString = ['Please enter your new password:',
                             'Please enter it again:']
         
         titleLabel = QtWidgets.QLabel(self)
@@ -732,6 +743,9 @@ class changePwd(standardUI):
         inputEdit = changeFont(inputEdit, 12, False, 'c')
         inputEdit.setEchoMode(QtWidgets.QLineEdit.Password)
         self.inputEdit = inputEdit
+
+        keyBoard = inputWidgets.inputFrame(self.inputEdit, 'full', self)
+        keyBoard.enterBtn.clicked.connect(self.enterAction)
         
         vbox = QtWidgets.QVBoxLayout(contentFrame)
         vbox.addWidget(titleLabel)
@@ -810,7 +824,7 @@ class changeCard(standardUI):
 
     def swipeAction(self):
         if self.input == 0:
-            if self.cardSequence[0] == 'æ':
+            if self.cardSequence[0:3] == cardInit:
                 self.cardString = self.cardSequence
                 self.titleLabel.setText(self.titleString[1])
                 self.input = 1
@@ -818,7 +832,7 @@ class changeCard(standardUI):
                 self.errorDialog()
                 self.update()
         elif self.input == 1:
-            if self.cardSequence[0] == 'æ':
+            if self.cardSequence[0:3] == cardInit:
                 if self.cardSequence == self.cardString:
                     self.mainWidget.currentUser.cardId = self.cardSequence
                     self.mainWidget.currentUser.saveUser()
