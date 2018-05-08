@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
@@ -38,7 +38,8 @@ def main():
     totalChanges = 0
     totalPaidAmount = 0
 
-    netDebt, debt = refFuncs.totalRefDebt(userFuncs.totalDebt())
+    debt, netDebt = userFuncs.totalDebt()
+    debt, netDebt = refFuncs.totalRefDebt(debt, netDebt)
     plog(f'The current net debt is {netDebt} kr. with the following dispersion:')
     for interval in debt:
         plog(f'  {interval} : {debt[interval]} kr.')

@@ -150,7 +150,7 @@ def totalRefDebt(debt=None, netDebt=None, users=None):
     
     for user in users:
         for interval in debt:
-            itvl = [int(i) for i in interval]
+            itvl = [int(i) for i in interval.split(':')]
             if itvl[0] < user.balance and user.balance <= itvl[1]:
                 debt[interval] += user.balance
 

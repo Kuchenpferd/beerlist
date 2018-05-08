@@ -206,11 +206,6 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         # A connection to the Exchange server is created
         account = loginExchange()
 
-        # Next the user independent part of the message is set up
-        message = Message(account = account,
-                          folder = account.sent,
-                          subject = 'Opgørelse af Æters Ølliste')
-
         # Looping over all users
         for user in users:
 
@@ -224,8 +219,13 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
                 urlSubs = htmlUrls(urlTexts, altUrl, mobilePayUrl)
 
                 # Next the user specific information is substituted in the template
-                # Valid substitutes are (so far): {name}, {sduId}, {qrcode} and {url}TEXT HERE{/url}
-                subList = [('{name}', user.name), ('{sduId}', user.sduId), ('{qrcode}', f'<img src="cid:{qrCodePath[-10:-4]}">')] + urlSubs
+                # Valid substitutes are (so far): {name}, {balance}, {sduId}, {qrcode}, {FacebookUrl} and {url}TEXT HERE{/url}
+                subList = [('{name}', user.name),
+                           ('{balance}', str(user.balance)),
+                           ('{sduId}', user.sduId),
+                           ('{FacebookUrl}', '<a href=https://www.facebook.com/aeter.sdu/>Facebook</a>'),
+                           ('{qrcode}', f'<img src="cid:{qrCodePath[-10:-4]}">')] + urlSubs
+
                 messageText = templateText
                 for key, subst in subList:
                     messageText = messageText.replace(key, subst)
@@ -234,10 +234,13 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
                 with open(qrCodePath, 'rb') as qrFile:
                     qrImage = FileAttachment(name = qrCodePath[-10:-4], content = qrFile.read())
 
-                # The remaining message parameters are set (including attaching the QR code)
+                # The message is set up and the qr code attached
+                message = Message(account = account,
+                                  folder = account.sent,
+                                  subject = 'Opgørelse af Æters Ølliste',
+                                  body = HTMLBody(messageText),
+                                  to_recipients = [Mailbox(email_address = user.mail)])
                 message.attach(qrImage)
-                message.body = HTMLBody(messageText)
-                message.to_recipients = [Mailbox(email_address = user.mail)]
 
                 try:
 

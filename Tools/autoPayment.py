@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 from glob import glob
@@ -13,7 +13,7 @@ import userFuncs, refFuncs
 
 mainFolder = '../'
 payFolder = mainFolder + 'Data/Payment/'
-indexDicts = {'MobPay':{'msg':9, 'amount':3, 'date':6}, 'NetBank':{'msg':2, 'amount':4, 'date':0}}
+indexDicts = {'MobPay':{'msg':9, 'amount':3, 'date':6}, 'NetBank':{'msg':1, 'amount':3, 'date':0}}
 typeDict = {'Ord':['-Orig.csv', '-Tmp.csv'], 'Ref':['-Tmp.csv', '-AutoFinal.csv']}
 logPath = payFolder + 'payment.log.n'
 makeLog = True
@@ -50,7 +50,8 @@ def main():
     plog('\nAuto payment log ' + today.strftime('%y.%m.%d %H:%M') + '\n')
     totalChanges = 0
     totalPaidAmount = 0
-    netDebt, debt = refFuncs.totalRefDebt(userFuncs.totalDebt())
+    debt, netDebt = userFuncs.totalDebt()
+    debt, netDebt = refFuncs.totalRefDebt(debt, netDebt)
     plog(f'The current net debt is {netDebt} kr. with the following dispersion:')
     for interval in debt:
         plog(f'  {interval} : {debt[interval]} kr.')
@@ -108,7 +109,7 @@ def main():
                         if rRow[idx['amount']] != 'Beløb':
                             msg = rRow[idx['msg']].lower()
                             amount = intF(rRow[idx['amount']])
-                            payDate = list(reversed(rRow[idx['date']].replace('/', '.').split('.')))
+                            payDate = list(reversed(rRow[idx['date']].replace('-', '.').split('.')))
                             payDate = date(*[int(x) for x in payDate])
                             for user in users:
                                 if user.sduId in msg:
@@ -121,7 +122,7 @@ def main():
                                             user.saveUser()
                                         else:
                                             if user.balance == 0:
-                                                refUsers.remove(user)
+                                                users.remove(user)
                                             refFuncs.saveRefUsers(users)
                                         plog('\n    Okay, changes saved.\n')
                                         totalChanges += 1
@@ -135,7 +136,8 @@ def main():
     plog("That's it for this time, please check the *-Final.csv files in ~/beerlist/,\nthese should be manually checked for missed entries, a good tool should be\nmanPayment.\nPlease remove the lines as you find them and move the files\nto ~/beerlist/Data/Payment/ when done.")
     plog(f'A total of {totalChanges} changes have been made adding up to a total paid amount\nof {totalPaidAmount} kr.!')
 
-    netDebt, debt = refFuncs.totalRefDebt(userFuncs.totalDebt())
+    debt, netDebt = userFuncs.totalDebt()
+    debt, netDebt = refFuncs.totalRefDebt(debt, netDebt)
     plog(f'The new net debt is {netDebt} kr. with the following dispersion:')
     for interval in debt:
         plog(f'  {interval} : {debt[interval]} kr.')
