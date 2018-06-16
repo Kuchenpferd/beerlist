@@ -60,7 +60,7 @@ def loadStats(yearAndMonth, stats = None):
     # Make stats an empty list if no stats list is input
     if stats is None:
         stats = []
-    
+
     # First the path is set to the specific file
     path = dataFolder + 'Stats/' + yearAndMonth
 
@@ -88,7 +88,7 @@ def loadStats(yearAndMonth, stats = None):
         # and added as the single element of of 'sts'
         tmpStat = statInstance()
         stats.append(tmpStat)
-        
+
     # At last the list is returned
     return stats
 
@@ -133,7 +133,7 @@ def updateStats(statType, units = 1):
     yearAndMonth = date.today().strftime('%y-%m')
     dayOfMonth = date.today().day
     hour = datetime.now().hour
-    
+
     # Then the relevant stats list is created by loading the stats
     stats = loadStats(yearAndMonth)
 
@@ -157,6 +157,26 @@ def updateStats(statType, units = 1):
 
     # The new 'stats' list is then saved
     saveStats(stats)
+
+# A function to save stats in Google Sheets
+def GSheetStats(statType, units = 1):
+    # First get the current time in epoch format
+    timestamp = datetime.now().timestamp()
+
+    # Determine whether to add users or marks
+    if statType == 'Mark':
+        marks = units
+        users = 0
+    elif statType == 'User':
+        marks = 0
+        users = 1
+
+    # Prepare json to send to Google Sheets
+    values = [[timestamp, marks, users]]
+    body = {'values':values}
+
+    # Append the stats to the Google Sheet, via the API
+    service.spreadsheets().values().append(spreadsheetId=SPREADSHEET_ID,range='stats',valueInputOption='RAW',body=body).execute()
 
 # The usual header, which in this case just passes, as this script is not ment to be run at all.
 def main():
