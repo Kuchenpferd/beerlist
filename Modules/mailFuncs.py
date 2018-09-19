@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import pyqrcode
+#import pyqrcode
 from hashlib import sha256
 from string import ascii_letters, digits
 from random import randrange
@@ -310,6 +310,61 @@ def sendMail(user, mailType = 'Debt', debtLimit = 0):
         # The connection is closed and the flag is returned
         account.protocol.close()
         return sent
+
+    elif mailType == 'Debug':
+        print('Opened function')
+        # The content of the debugging mail is created on spot
+        plainText = f"""
+                    Hi,
+
+                    Good luck with the debugging! below you can find properties of the specified user.
+
+                    Further user properties are:
+                        Name:       {user.name}
+                        Sdu-Id:     {user.sduId}
+                        Mail:       {user.mail}
+                        User no.:   {user.number}
+                        Balance:    {user.balance}
+
+                    Best regards,
+                    The Beerlist
+                    """[1:].replace('            ', '')
+
+        # And it is then converted to HTML
+        messageText = plainToHtml(plainText)
+        print('Text converted to HTML')
+
+        # A connection is made to the Exchange server
+        account = loginExchange()
+        print('Started exchange session')
+
+        # And a message is created
+        message = Message(account=account,
+                          folder=account.sent,
+                          subject='Debugging mail fra Æters ølliste',
+                          body=HTMLBody(messageText),
+                          to_recipients=[Mailbox(email_address= user.mail)])
+        print('Defined message body')
+
+        try:
+
+            # We then try sending the message
+            message.send_and_save()
+            sent = True
+            print('Finished trying')
+
+        except:
+
+            # If sending it fails a flag is set to False
+            sent = False
+            print('Finished expception')
+
+        # The connection is closed and the flag is returned
+        print('Closing protocol')
+        account.protocol.close()
+        print('Protocol closed')
+        return sent
+
 
 # The usual header, which in this case just passes, as this script is not ment to be run at all.
 def main():
