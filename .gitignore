@@ -7,4 +7,5 @@
 /Tools/__pycache__
 /Resources/qrcode.png
 /.idea/
+/.spyproject/
 *.csv
